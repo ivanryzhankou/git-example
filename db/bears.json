@@ -53,5 +53,10 @@
       "name": "Kenai",
       "type": "Grizzly"
     }
+    {
+      "id": 11,
+      "name": "Bubochka",
+      "type": "Panda"
+    }
   ]
 }
