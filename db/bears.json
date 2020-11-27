@@ -58,5 +58,10 @@
       "name": "Bubochka",
       "type": "Panda"
     }
+    {
+      "id": 11,
+      "name": "Toporik",
+      "type": "Black"
+     }
   ]
 }
