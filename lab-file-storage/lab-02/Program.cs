@@ -12,54 +12,188 @@ namespace lab_02
     {
         static void Main(string[] args)
         {
-            Logging();
-            ShowStorageContents();
+            LoadingIntoStorage();
         }
 
-        private static void ShowStorageContents ()
+        private static void LoadingIntoStorage()
         {
-            Directory.CreateDirectory(ConfigurationManager.AppSettings.Get("repositoryAddress"));
-            List <string> filesInStorage = new List <string> (Directory.GetFiles(ConfigurationManager.AppSettings.Get("repositoryAddress")));
-            foreach (string file in filesInStorage)
+            int maxFileSize = 150; // Megabyte
+            int MaximumStorageSize = 10240; // не забыть убрать отсюда!!!!
+            bool isFileValid = true;
+
+            string pathToFile = string.Empty;
+            do
             {
-                Console.WriteLine(file.Remove(0, (ConfigurationManager.AppSettings.Get("repositoryAddress").Length + 1)));
+                UserNotice("Enter the path to the file");
+                pathToFile = @"" + GetStringFromUser();
+
+                if (File.Exists(pathToFile) == false)
+                {
+                    Console.Clear();
+                    UserNotice("This file does not exist. Please try again");
+                    isFileValid = false;
+                }
+
+                else if (GetFfileSize(pathToFile) >= maxFileSize)
+                {
+                    Console.Clear();
+                    UserNotice("Sorry.The file cannot be larger than 150 MB");
+                    isFileValid = false;
+                }
+
+                else if (GetFolderSize(ConfigurationManager.AppSettings.Get("storageAddress")) + GetFfileSize(pathToFile) > MaximumStorageSize)
+                {
+                    Console.Clear();
+                    UserNotice("Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file");
+                    isFileValid = false;
+                }
+
+                else if (checkUniquenessFilename(pathToFile) == false)
+                {
+                    Console.Clear();
+                    UserNotice("Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file");
+                    isFileValid = false;
+                }
+            }
+
+            while (!isFileValid);
+            {
+                if (isFileValid == true)
+                {
+                    FileInfo fileInf = new FileInfo(pathToFile);
+
+                    string a = fileInf.Name;
+
+                    Console.WriteLine(a);
+                   
+
+                    fileInf.CopyTo((ConfigurationManager.AppSettings.Get("storageAddress") + "\\" + fileInf.Name));
+                }
             }
         }
 
-        private static int ShowMenu( List<string>listOfOptions)
+        private static bool checkUniquenessFilename(string pathToFile)
         {
-            int activeOption = 0;
+            List<string> files = new List<string>(Directory.GetFiles(ConfigurationManager.AppSettings.Get("storageAddress")));
+            FileInfo File = new FileInfo(pathToFile);
 
-            foreach (string file in listOfOptions)
+            for (int i = 0; i < files.Count; i++)
             {
-                Console.WriteLine(file);
+                if (File.Name == (files[i].Remove(0, (ConfigurationManager.AppSettings.Get("storageAddress").Length + 1))))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
-        //private static void Test()
-        //{
-        //    Directory.CreateDirectory("c:\\Users\\i.ryzhankou\\Desktop\\test");
-        //    Directory.Delete("c:\\Users\\i.ryzhankou\\Desktop\\test");
-        //    string a = "c:\\Users\\i.ryzhankou\\Desktop\\test";
-        //    var txtFiles = Directory.EnumerateFiles(a);
 
-        //    foreach (string str in txtFiles)
-        //    {
-        //        Console.WriteLine(str.Remove(0, a.Length + 1));
-        //    }
-        //    Console.WriteLine("ok");
-        //}
+        private static double GetFfileSize(string pathToFile)
+        {
+            FileInfo File = new FileInfo(pathToFile);
 
-        //private static void UpdateSetting(string key, string value)
-        //{
-        //    Configuration configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-        //    configuration.AppSettings.Settings[key].Value = value;
-        //    configuration.Save();
+            Console.WriteLine(conversionToMegabytes(File.Length));
+            return conversionToMegabytes(File.Length);
+        }
 
-        //    ConfigurationManager.RefreshSection("appSettings");
-        //}
+        private static double GetFolderSize(string pathToFolder)
+        {
+            long folderSize = 0;
+
+            List<string> files = new List<string>(Directory.GetFiles(pathToFolder));
+
+            foreach (string file in files)
+            {
+                folderSize += file.Length;
+            }
+            return conversionToMegabytes(folderSize);
+        }
+
+
+        public static double conversionToMegabytes(long bytes)
+        {
+            const float unitMeasurement = 1048576; // Megabyte
+
+            return Math.Round(bytes / unitMeasurement, 6);
+        }
+
+        private static List<string> GetFolderContents(string path)
+        {
+            List<string> folders = new List<string>(Directory.GetFiles(path));
+            List<string> files = new List<string>(Directory.GetDirectories(path));
+            List<string> foldersAndFiles = new List<string>();
+
+            foldersAndFiles.AddRange(folders);
+            foldersAndFiles.AddRange(files);
+
+            for (int i = 0; i < foldersAndFiles.Count; i++)
+            {
+                foldersAndFiles[i] = foldersAndFiles[i].Substring(path.Length);
+            }
+
+            return foldersAndFiles;
+        }
+
+        private static int ShowActiveMenu(List<string> listOfOptions, int activeOption = 0)
+        {
+            var userAction = ConsoleKey.Spacebar;
+            do
+            {
+                for (int i = 0; i < listOfOptions.Count; i++)
+                {
+                    if (activeOption == i)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Red;
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine(listOfOptions[i]);
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.WriteLine(listOfOptions[i]);
+                    }
+                }
+
+                userAction = Console.ReadKey().Key;
+
+                switch (userAction)
+                {
+                    case ConsoleKey.DownArrow:
+                        activeOption += 1;
+                        if (activeOption >= listOfOptions.Count) { activeOption = 0; };
+                        Console.Clear();
+                        break;
+
+                    case ConsoleKey.UpArrow:
+                        activeOption -= 1;
+                        if (activeOption < 0) { activeOption = listOfOptions.Count - 1; };
+                        Console.Clear();
+                        break;
+                    default:
+                        Console.Clear();
+                        break;
+                }
+            }
+            while (userAction != ConsoleKey.Enter);
+
+            return activeOption;
+        }
+
+        private static void ShowStarMenu()
+        {
+            List<string> options = new List<string>() { "ShowStorageContents", "Upload files to storage", "Show user info" };
+
+            ShowActiveMenu(options);
+        }
+
+        private static bool UserVerification(string login, string password)
+        {
+            return login == ConfigurationManager.AppSettings.Get("login") && password == ConfigurationManager.AppSettings.Get("password");
+        }
+
         private static void Logging()
         {
-            bool isUserValid; // Valid variable name?
+            bool isUserValid;
 
             do
             {
@@ -78,21 +212,7 @@ namespace lab_02
                 }
             }
             while (isUserValid == false);
-
-            //if (ConfigurationManager.AppSettings.Get("repositoryAddress") == "null")
-            //{
-            //    RepositoryCreation();
-            //}
-        }
-
-        //private static void RepositoryCreation()
-        //{
-        //    UpdateSetting("repositoryAddress", GetStringFromUser("enter repository address"));
-        //}
-
-        private static bool UserVerification(string login, string password)
-        {
-           return login == ConfigurationManager.AppSettings.Get("login") && password == ConfigurationManager.AppSettings.Get("password");
+            Console.Clear();
         }
 
         private static string GetStringFromUser()
@@ -108,5 +228,54 @@ namespace lab_02
                 Console.WriteLine(message);
             }
         }
+
+        //public static void SelectdownloadableFiles()
+        //{
+        //    string pathDownloadedFile = @"";
+        //    string previousFolder;
+        //    int userChois;
+        //    int count = 0;
+
+        //    List<string> contentsOfDirectory = new List<string>();
+        //    contentsOfDirectory.AddRange(GetDrivesList());
+
+        //    do
+        //    {
+        //        userChois = ShowActiveMenu(contentsOfDirectory);
+        //        previousFolder = pathDownloadedFile;
+
+        //        if (userChois == 0 && count !=0)
+        //        {
+        //            contentsOfDirectory.Clear();
+        //            contentsOfDirectory.AddRange(GetFolderContents(previousFolder));
+        //            contentsOfDirectory.Insert(0, "...");
+
+        //        }
+        //        else
+        //        {
+        //            pathDownloadedFile += contentsOfDirectory[userChois];
+        //            contentsOfDirectory.Clear();
+        //            contentsOfDirectory.AddRange(GetFolderContents(pathDownloadedFile));
+        //            contentsOfDirectory.Insert(0, "...");
+        //            count++;
+
+        //        }
+        //    }
+
+        //    while (File.Exists(pathDownloadedFile) == false);
+        //}
+
+        //private static List<string> GetDrivesList()
+        //{
+        //    List<DriveInfo> allDrives = new List<DriveInfo>(DriveInfo.GetDrives());
+        //    List<string> drivesList = new List<string>();
+
+        //    for (int i = 0; i < allDrives.Count; i++)
+        //    {
+        //        drivesList.Add(allDrives[i].Name);
+        //    }
+
+        //    return drivesList;
+        //}
     }
 }
