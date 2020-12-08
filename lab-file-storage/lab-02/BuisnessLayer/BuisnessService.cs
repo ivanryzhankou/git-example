@@ -6,55 +6,64 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Linq;
+using lab_02.BuisnessLayer.Model;
 
 namespace lab_02.BuisnessLayer
 {
-    class BuisnessService
+    public class BuisnessService
     {
         string storageSddress = ConfigurationManager.AppSettings.Get("storageAddress");
 
         DataLayer.DataRepository dataRepository = new DataLayer.DataRepository();
-        DataLayer.BinaryDataRepository BinaryDataRepository = new DataLayer.BinaryDataRepository();
+        DataLayer.BinaryDataRepository binaryDataRepository = new DataLayer.BinaryDataRepository();
 
-        internal (bool, string) FileUploadCheck(string pathToFile)
+        UserInformation userInformation = new UserInformation();
+
+
+        public UserInformation CheckingFileUpload(string pathToFile)
         {
-            var resultOfChecking = (isFileValid: true, downloadResultMessage: string.Empty);
 
             if (!dataRepository.IsFileExistence(pathToFile))
             {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.downloadResultMessage = "This file does not exist. Please try again");
+                userInformation.informationForUser = "This file does not exist. Please try again";
+                return userInformation;
             }
 
             if (dataRepository.CheckOnMaxSizeFile(pathToFile))
             {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.downloadResultMessage = "Sorry.The file cannot be larger than 150 MB");
+                userInformation.informationForUser = "Sorry.The file cannot be larger than 150 MB";
+                return userInformation;
             }
 
             if (dataRepository.checkOnStorageOverflow(pathToFile))
             {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.downloadResultMessage = "Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file");
+                userInformation.informationForUser = "Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file";
+                return userInformation;
             }
 
             if (!dataRepository.СheckUniquenessFilename(pathToFile, storageSddress))
             {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.downloadResultMessage = "A file with the same name already exists");
+                userInformation.informationForUser = "A file with the same name already exists";
+                return userInformation;
             }
 
             else
             {
                 UploadFilesIntoStorage(pathToFile);
 
-                bool downloadSuccessful = CheckOnUploadSuccesa(pathToFile, storageSddress);
+                bool downloadSuccessful = CheckOnUploadSuccess(pathToFile, storageSddress);
 
                 if (downloadSuccessful == true)
                 {
 
                     GetMetaInformationAboutFile(pathToFile);
-                    return (resultOfChecking.isFileValid = true, "The file has been successfully uploaded to the storage. Press inter to return to the menu");
+                    userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press enter to return to the menu";
+                    return userInformation;
                 }
                 else
                 {
-                    return (resultOfChecking.isFileValid = false, "File was not uploadeded. try again");
+                    userInformation.informationForUser = "File was not uploadeded. try again";
+                    return userInformation;
                 }
             }
         }
@@ -68,7 +77,7 @@ namespace lab_02.BuisnessLayer
             int downloadsNumber = 0;
             string hashChecksum = GetHashChecksum(pathToFile);
 
-            BinaryDataRepository.SerializeFileMetaInformation(name, extension, size, creationDate, downloadsNumber, hashChecksum);
+            binaryDataRepository.SerializeFileMetaInformation(name, extension, size, creationDate, downloadsNumber, hashChecksum);
         }
 
         private string GetHashChecksum(string pathToFile)
@@ -93,56 +102,65 @@ namespace lab_02.BuisnessLayer
         {
             dataRepository.UploadFilesIntoStorage(pathToFile);
 
-            return CheckOnUploadSuccesa(pathToFile, storageSddress);
+            return CheckOnUploadSuccess(pathToFile, storageSddress);
+        }
+       
+        internal UserInformation UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
+        {
+            UserInformation userInformation = new UserInformation();
+
+            if (!Directory.Exists(folderForUnloading))
+            {
+                userInformation.informationForUser = "This directory does not exist. Please try again";
+
+                return userInformation;
+            }
+
+            if (!dataRepository.СheckUniquenessFilename(unloadingFile, folderForUnloading))
+            {
+                userInformation.informationForUser = "A file with the same name already exists at the given path. Replace it?";
+                userInformation.needReplacement = true;
+
+                return userInformation;
+            }
+            else
+            {
+                dataRepository.UnloadFilesIntoStorge(unloadingFile, folderForUnloading);
+
+                userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, folderForUnloading);
+
+                if (userInformation.isFileValid)
+                {
+                    userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press enter to return to the menu";
+
+                }
+
+                else
+                {
+                    userInformation.informationForUser = "File was not uploadeded. try again";
+                }
+
+                return userInformation;
+            }
         }
 
-        private bool CheckOnUploadSuccesa(string pathToFile, string pathToFolder)
+        private void CheckFileForUnload ()
+        {
+
+
+        }
+
+
+        private bool CheckOnUploadSuccess(string pathToFile, string pathToFolder)
         {
             string fileName = dataRepository.GetFileName(pathToFile);
 
             return dataRepository.IsFileExistence(storageSddress + "//" + fileName);
         }
 
-        internal (bool, bool, string) FileUnloadCheck(string unloadingFile, string folderForUnloading)
+        internal void CheckingRenameResult(string oldName, string newName)
         {
-            var resultOfChecking = (isFileValid: true, fileNeedReplacment: false, downloadResultMessage: string.Empty);
 
-
-            if (!Directory.Exists(folderForUnloading))
-            {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.fileNeedReplacment, resultOfChecking.downloadResultMessage = 
-                    "This directory does not exist. Please try again");
-
-            }
-
-            if (!dataRepository.СheckUniquenessFilename(unloadingFile, folderForUnloading))
-            {
-                return (resultOfChecking.isFileValid = false, resultOfChecking.fileNeedReplacment = true, resultOfChecking.downloadResultMessage = 
-                    "A file with the same name already exists at the given path. Replace it?");
-            }
-            else
-            {
-                UnloadFilesIntoStorage(unloadingFile, folderForUnloading);
-
-                bool UnloadSuccessful = CheckOnUploadSuccesa(unloadingFile, folderForUnloading);
-
-                if (UnloadSuccessful)
-                {
-                    return (resultOfChecking.isFileValid = true, resultOfChecking.fileNeedReplacment = true, "The file has been successfully uploaded to the storage. Press inter to return to the menu");
-
-                }
-                else
-                {
-                    return (resultOfChecking.isFileValid = false, resultOfChecking.fileNeedReplacment = true, "File was not uploadeded. try again");
-                }
-            }
-        }
-
-        private bool UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
-        {
-            dataRepository.UnloadFilesIntoStorge(unloadingFile, folderForUnloading);
-
-            return CheckOnUploadSuccesa(unloadingFile, folderForUnloading);
         }
     }
 }

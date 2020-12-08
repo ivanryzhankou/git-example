@@ -27,7 +27,7 @@ namespace lab_02.DataLayer
 
         internal void UnloadFilesIntoStorge(string unloadingFile, string pathToUnloadingFile)
         {
-            pathToUnloadingFile += ("\\"+ GetFileName(unloadingFile));
+            pathToUnloadingFile += ("\\" + GetFileName(unloadingFile));
             File.Copy(unloadingFile, pathToUnloadingFile, true);
         }
 
@@ -36,7 +36,7 @@ namespace lab_02.DataLayer
             return File.Exists(pathToFile);
         }
 
-        internal bool checkOnStorageOverflow (string pathToFile)
+        internal bool checkOnStorageOverflow(string pathToFile)
         {
             return GetFolderSize(ConfigurationManager.AppSettings.Get("storageAddress")) + GetFileSize(pathToFile) > MaximumStorageSize;
         }

@@ -40,18 +40,17 @@ namespace lab_02.DataLayer
 
         internal Dictionary<string, Models.FileMetaInformation> DeserializeFileMetaInformation()
         {
-            Dictionary<string, Models.FileMetaInformation> metaInformationFiles = new Dictionary<string, Models.FileMetaInformation>();
-
             BinaryFormatter formatter = new BinaryFormatter();
 
             using (FileStream fs = new FileStream("MetaInformationFiles.dat", FileMode.OpenOrCreate))
             {
-                Dictionary<string, Models.FileMetaInformation> newMetaInformationFiles = (Dictionary<string, Models.FileMetaInformation>)formatter.Deserialize(fs);
+                Dictionary<string, Models.FileMetaInformation> metaInformationFiles = (Dictionary<string, Models.FileMetaInformation>)formatter.Deserialize(fs);
 
-                metaInformationFiles = newMetaInformationFiles;
+
+                return metaInformationFiles;
+
             }
 
-            return metaInformationFiles;
         }
 
         internal void ShowMetaInformation(string fileName) // interface method. Temporarily here

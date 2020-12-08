@@ -6,11 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 
+
 namespace lab_02.InterfaceLayer
 {
     class InterfaceService
     {
         BuisnessLayer.BuisnessService buisnessService = new BuisnessLayer.BuisnessService();
+        BuisnessLayer.Model.UserInformation userInformation = new BuisnessLayer.Model.UserInformation();
+
 
         int activeUserRequest;
 
@@ -18,13 +21,13 @@ namespace lab_02.InterfaceLayer
         {
             do
             {
-                List<string> options = new List<string>() { "Download files to storage", "Save files from storage", "Show user info", "Exit" };
+                List<string> options = new List<string>() { "Download files to storage", "Save files from storage", "Rename file into storage", "Show user info", "Exit" };
 
                 activeUserRequest = ShowActionMenu(options);
                 UseRequestProcessing(activeUserRequest);
             }
 
-            while (activeUserRequest != 3);
+            while (activeUserRequest != 4);
         }
 
         private void UseRequestProcessing(int userRequest)
@@ -38,11 +41,27 @@ namespace lab_02.InterfaceLayer
                     getInformationToUnloading();
                     break;
                 case 2:
+                    getInformationToRenameFile();
                     break;
                 default:
                     break;
             }
-        
+
+        }
+
+        private void getInformationToRenameFile()
+        {
+            string oldName = SelectionFileInStorage("Select the file you want to rename");
+            UserNotice("Inter a new file name");
+            string newName = GetStringFromUser();
+
+            ShowRenameResult(oldName, newName);
+
+        }
+
+        private void ShowRenameResult(string oldName, string newName)
+        {
+
         }
         private void getInformationToUploadFile()
         {
@@ -73,28 +92,36 @@ namespace lab_02.InterfaceLayer
             }
         }
 
-        private void ShowResultOfFileUnloading (string unloadingFile, string folderForUnloading)
+        private void ShowResultOfFileUnloading(string unloadingFile, string folderForUnloading)
         {
-            var resultOfChecking = (isFileValid: true, fileNeedReplacment: false, downloadResultMessage: string.Empty);
+            userInformation = buisnessService.UnloadFilesIntoStorage(unloadingFile, folderForUnloading);
 
-            resultOfChecking = buisnessService.FileUnloadCheck(unloadingFile, folderForUnloading);
-
-            if (!resultOfChecking.isFileValid && !resultOfChecking.fileNeedReplacment)
+            if (userInformation.isFileValid)
             {
                 Console.Clear();
-                UserNotice(resultOfChecking.downloadResultMessage);
-                getInformationToUploadFile();
+                UserNotice(userInformation.informationForUser);
+                Console.ReadKey();
+                Console.Clear();
+                ShowStartMenu();
             }
 
-            if (resultOfChecking.fileNeedReplacment)
+            if (userInformation.needReplacement)
             {
                 Console.Clear();
-                UserNotice(resultOfChecking.downloadResultMessage);
-                Console.ReadKey();
+                UserNotice(userInformation.informationForUser);
+                List<string> options = new List<string>() {"Yes","No" };
+                ShowActionMenu(options);
+            }
+
+            else
+            {
+                Console.Clear();
+                UserNotice(userInformation.informationForUser);
+                getInformationToUnloading();
             }
         }
 
-            private string SelectionFileInStorage(string userMessage)
+        private string SelectionFileInStorage(string userMessage)
         {
             List<string> filesInStorage = new List<string>(Directory.GetFiles(ConfigurationManager.AppSettings.Get("storageAddress")));
             UserNotice(userMessage);
@@ -104,21 +131,20 @@ namespace lab_02.InterfaceLayer
 
         private void ShowResultOfFileUpload(string pathToFile)
         {
-            var resultOfChecking = (isFileValid: true, downloadResultMessage: string.Empty);
+            userInformation = buisnessService.CheckingFileUpload(pathToFile); 
 
-            resultOfChecking = buisnessService.FileUploadCheck(pathToFile);
 
-            if (!resultOfChecking.isFileValid)
+            if (!userInformation.isFileValid)
             {
                 Console.Clear();
-                UserNotice(resultOfChecking.downloadResultMessage);
+                UserNotice(userInformation.informationForUser);
                 getInformationToUploadFile();
             }
 
             else
             {
                 Console.Clear();
-                UserNotice(resultOfChecking.downloadResultMessage);
+                UserNotice(userInformation.informationForUser);
                 Console.ReadKey();
 
             }
