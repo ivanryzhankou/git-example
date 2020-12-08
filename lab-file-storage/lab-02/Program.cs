@@ -16,11 +16,8 @@ namespace lab_02
         static void Main(string[] args)
         {
             InterfaceLayer.InterfaceService interfaceService = new InterfaceLayer.InterfaceService();
-            DataLayer.BinaryDataRepository binaryDataRepository = new DataLayer.BinaryDataRepository();
-            DataLayer.Models.FileMetaInformation fileMetaInformation = new DataLayer.Models.FileMetaInformation();
 
-            //interfaceService.ShowStartMenu();
-            binaryDataRepository.ShowMetaInformation("test.rtf");
+            interfaceService.ShowStartMenu();
         }
 
         private static bool UserVerification(string login, string password)

@@ -42,18 +42,7 @@ namespace lab_02.InterfaceLayer
                 default:
                     break;
             }
-        }
-        internal void ShowFileMetaInformation(string fileName)
-        {
-            Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
-
-            Models.FileMetaInformation activeFile = metaInformationFiles.GetValueOrDefault(fileName);
-
-            Console.WriteLine("File name: " + activeFile.name);
-            Console.WriteLine("file extension: " + activeFile.extension);
-            Console.WriteLine("File size: " + activeFile.size + " kb");
-            Console.WriteLine("Date of upload: " + activeFile.creationDate);
-            Console.WriteLine("Number of downloads: " + activeFile.downloadsNumber);
+        
         }
         private void getInformationToUploadFile()
         {

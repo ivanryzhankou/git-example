@@ -54,7 +54,7 @@ namespace lab_02.DataLayer
             return metaInformationFiles;
         }
 
-        internal void ShowMetaInformation(string fileName)
+        internal void ShowMetaInformation(string fileName) // interface method. Temporarily here
         {
             Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
 
@@ -65,8 +65,6 @@ namespace lab_02.DataLayer
             Console.WriteLine("File size: " + activeFile.size + " kb");
             Console.WriteLine("Date of upload: " + activeFile.creationDate);
             Console.WriteLine("Number of downloads: " + activeFile.downloadsNumber);
-            Console.WriteLine(activeFile.hashChecksum);
         }
-
     }
 }
