@@ -88,7 +88,9 @@ namespace lab_02.InterfaceLayer
 
             if (resultOfChecking.fileNeedReplacment)
             {
-
+                Console.Clear();
+                UserNotice(resultOfChecking.downloadResultMessage);
+                Console.ReadKey();
             }
         }
 
