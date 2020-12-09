@@ -17,7 +17,6 @@ namespace lab_02.BuisnessLayer
 
         DataLayer.DataRepository dataRepository = new DataLayer.DataRepository();
         DataLayer.BinaryDataRepository binaryDataRepository = new DataLayer.BinaryDataRepository();
-
         UserInformation userInformation = new UserInformation();
 
         public UserInformation CheckingRenameFile(string oldName, string newName)
@@ -53,20 +52,35 @@ namespace lab_02.BuisnessLayer
             }
         }
 
+        internal UserInformation DeleteFileFromStorage(string pathToFile)
+        {
+            dataRepository.DeleteFileFromStorage(pathToFile);
+
+            if (!dataRepository.IsFileExistence(pathToFile))
+            {
+                userInformation.informationForUser = "File has been delete. Press any key to return to the menu";
+                return userInformation;
+            }
+            else
+            {
+                userInformation.informationForUser = "File cannot be delete. Try again. Press any key to return to the menu";
+                return userInformation;
+            }
+        }
+
         public UserInformation RenameFile(string oldName, string newName)
         {
             dataRepository.RenameFile(oldName, storageSddress + "\\" + newName);
 
             if (dataRepository.IsFileExistence(storageSddress + "\\" + newName))
             {
-                userInformation.informationForUser = "File has been renamed";
+                userInformation.informationForUser = "File has been renamed. Press any key to return to the menu";
                 return userInformation;
             }
             else
             {
-                userInformation.informationForUser = "File cannot be renamed. Try again";
+                userInformation.informationForUser = "File cannot be renamed. Try again. Press any key to return to the menu";
                 return userInformation;
-
             }
         }
 
@@ -133,7 +147,7 @@ namespace lab_02.BuisnessLayer
             }
             else
             {
-                userInformation.informationForUser = "File was not uploadeded. try again";
+                userInformation.informationForUser = "File was not uploadeded. try again. Press any key to return to the menu";
 
                 return "File was not uploadeded. try again";
             }
@@ -186,12 +200,12 @@ namespace lab_02.BuisnessLayer
 
             if (userInformation.isFileValid)
             {
-                return "The file has been successfully uploaded to the storage. Press enter to return to the menu";
+                return "The file has been successfully uploaded to the storage. Press any key to return to the menu";
             }
 
             else
             {
-                return "File was not uploadeded. try again";
+                return "File was not uploadeded. Try again. Press any key to return to the menu";
             }
         }
 
@@ -219,7 +233,6 @@ namespace lab_02.BuisnessLayer
                 userInformation.isFileValid = true;
                 return userInformation;
             }
-
         }
 
         private bool CheckOnUploadSuccess(string pathToFile, string pathToFolder)
@@ -227,11 +240,6 @@ namespace lab_02.BuisnessLayer
             string fileName = dataRepository.GetFileName(pathToFile);
 
             return dataRepository.IsFileExistence(storageSddress + "//" + fileName);
-        }
-
-        internal void CheckingRenameResult(string oldName, string newName)
-        {
-
         }
     }
 }

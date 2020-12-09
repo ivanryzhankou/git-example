@@ -14,6 +14,11 @@ namespace lab_02.DataLayer
         public long MaximumStorageSize = 10737418240; // 10 Gigabyte
 
         
+        internal void DeleteFileFromStorage(string pathToFile)
+        {
+            File.Delete(pathToFile);
+        }
+
         public void RenameFile(string originalName, string newName)
         {
             File.Move(originalName, newName);

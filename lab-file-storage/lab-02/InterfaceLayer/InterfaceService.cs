@@ -21,7 +21,7 @@ namespace lab_02.InterfaceLayer
         {
             do
             {
-                List<string> options = new List<string>() { "Upload files to storage", "Unload files from storage", "Rename file into storage", "Remove file from storage",
+                List<string> options = new List<string>() { "Upload file to storage", "Unload file from storage", "Rename file into storage", "Remove file from storage",
                     "Show user info", "Exit" };
 
                 activeUserRequest = ShowActionMenu(options);
@@ -45,23 +45,42 @@ namespace lab_02.InterfaceLayer
                     GetInformationToRenameFile();
                     break;
                 case 3:
+                    GetInformationToDeleteFile();
                     break;
                 default:
                     break;
             }
         }
 
+        private void GetInformationToDeleteFile()
+        {
+            string pathToFile = SelectionFileInStorage("Select file to delete");
+
+            ShowResultOfFileDeletion(pathToFile);
+        }
+
+        private void ShowResultOfFileDeletion(string pathToFile)
+        {
+
+            userInformation = buisnessService.DeleteFileFromStorage(pathToFile);
+
+            Console.Clear();
+            UserNotice(userInformation.informationForUser);
+            Console.ReadKey();
+            Console.Clear();
+        }
+
         private void GetInformationToRenameFile()
         {
-            string oldName = SelectionFileInStorage("Select the file you want to rename");
+            string oldName = SelectionFileInStorage("Select file you want to rename");
             UserNotice("Inter a new file name");
             string newName = GetStringFromUser();
 
-            ShowResultOfFileRenameCheck(oldName, newName);
+            ShowErrorWhenRenamingFile(oldName, newName);
 
         }
 
-        private void ShowResultOfFileRenameCheck(string oldName, string newName)
+        private void ShowErrorWhenRenamingFile(string oldName, string newName)
         {
             userInformation = buisnessService.CheckingRenameFile(oldName, newName);
 
@@ -72,7 +91,6 @@ namespace lab_02.InterfaceLayer
             else
             {
                 Console.Clear();
-
                 UserNotice(userInformation.informationForUser);
                 GetInformationToRenameFile();
             }
@@ -85,8 +103,6 @@ namespace lab_02.InterfaceLayer
             UserNotice(userInformation.informationForUser);
             Console.ReadKey();
             Console.Clear();
-
-
         }
         private void GetInformationToUploadFile()
         {
@@ -106,7 +122,6 @@ namespace lab_02.InterfaceLayer
         {
             userInformation = buisnessService.CheckingFileUpload(pathToFile);
 
-
             if (userInformation.isFileValid)
             {
                 ShowResultExecutionFileUpload(pathToFile);
@@ -118,6 +133,14 @@ namespace lab_02.InterfaceLayer
                 UserNotice(userInformation.informationForUser);
                 GetInformationToUploadFile();
             }
+        }
+
+        private void ShowResultExecutionFileUpload(string pathToFile)
+        {
+            Console.Clear();
+            UserNotice(buisnessService.UploadFileIntoStorage(pathToFile));
+            Console.ReadKey();
+            Console.Clear();
         }
 
         private void GetInformationToUnloading()
@@ -184,14 +207,6 @@ namespace lab_02.InterfaceLayer
             UserNotice(userMessage);
 
             return filesInStorage[ShowActionMenu(filesInStorage)];
-        }
-
-        private void ShowResultExecutionFileUpload(string pathToFile)
-        {
-            Console.Clear();
-            UserNotice(buisnessService.UploadFileIntoStorage(pathToFile));
-            Console.ReadKey();
-            Console.Clear();
         }
 
         private string GetPathToFile(string userMessage)
