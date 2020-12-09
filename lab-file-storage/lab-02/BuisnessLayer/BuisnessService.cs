@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Linq;
 using lab_02.BuisnessLayer.Model;
+using lab_02.DataLayer.Models;
 
 namespace lab_02.BuisnessLayer
 {
@@ -19,8 +20,74 @@ namespace lab_02.BuisnessLayer
 
         UserInformation userInformation = new UserInformation();
 
+        public UserInformation CheckingRenameFile(string oldName, string newName)
+        {
+            if (dataRepository.IsFileExistence(storageSddress + "\\" + newName))
+            {
+                userInformation.informationForUser = "File with the same name already exists. Try again";
+                return userInformation;
+            }
 
-        public UserInformation CheckingFileUpload(string pathToFile)
+            if (oldName == newName)
+            {
+                userInformation.informationForUser = "You haven't changed the file name. Try again";
+                return userInformation;
+            }
+
+            if (!CheckForInvalidCharacters(newName))
+            {
+                userInformation.informationForUser = @"the file name cannot be used '/\:*?«<>|' try again";
+                return userInformation;
+            }
+
+            if (newName.Length > 250)
+            {
+                userInformation.informationForUser = "The file name cannot exceed 250 characters . Try again";
+                return userInformation;
+            }
+
+            else
+            {
+                userInformation.isFileValid = true;
+                return userInformation;
+            }
+        }
+
+        public UserInformation RenameFile(string oldName, string newName)
+        {
+            dataRepository.RenameFile(oldName, storageSddress + "\\" + newName);
+
+            if (dataRepository.IsFileExistence(storageSddress + "\\" + newName))
+            {
+                userInformation.informationForUser = "File has been renamed";
+                return userInformation;
+            }
+            else
+            {
+                userInformation.informationForUser = "File cannot be renamed. Try again";
+                return userInformation;
+
+            }
+        }
+
+        public bool CheckForInvalidCharacters(string newName)
+        {
+           List<char> invalidCharacters = new List<char>() {'/', '\\', ':', '*', '?', '«', '<', '>', '|' };
+
+            for (int i = 0; i < newName.Length; i++)
+            {
+                for (int j = 0; j < invalidCharacters.Count; j++)
+                {
+                    if (newName[i] == invalidCharacters[j])
+                    {
+                        return false;
+                    }
+            }
+        }
+            return true;
+        }
+
+    public UserInformation CheckingFileUpload(string pathToFile)
         {
 
             if (!dataRepository.IsFileExistence(pathToFile))
@@ -49,35 +116,47 @@ namespace lab_02.BuisnessLayer
 
             else
             {
-                UploadFilesIntoStorage(pathToFile);
-
-                bool downloadSuccessful = CheckOnUploadSuccess(pathToFile, storageSddress);
-
-                if (downloadSuccessful == true)
-                {
-
-                    GetMetaInformationAboutFile(pathToFile);
-                    userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press enter to return to the menu";
-                    return userInformation;
-                }
-                else
-                {
-                    userInformation.informationForUser = "File was not uploadeded. try again";
-                    return userInformation;
-                }
+                userInformation.isFileValid = true;
+                return userInformation;
             }
         }
 
-        private void GetMetaInformationAboutFile(string pathToFile)
+        internal string UploadFileIntoStorage(string pathToFile)
         {
-            string name = dataRepository.GetFileName(pathToFile);
-            string extension = Path.GetExtension(pathToFile);
-            long size = dataRepository.GetFileSize(pathToFile);
-            string creationDate = DateTime.Now.ToString("yyyy-MM-dd");
-            int downloadsNumber = 0;
-            string hashChecksum = GetHashChecksum(pathToFile);
+            dataRepository.UploadFilesIntoStorage(pathToFile);
 
-            binaryDataRepository.SerializeFileMetaInformation(name, extension, size, creationDate, downloadsNumber, hashChecksum);
+            if (CheckOnUploadSuccess(pathToFile, storageSddress))
+            {
+                SaveNewFileMetoinformation(pathToFile);
+
+                return "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+            }
+            else
+            {
+                userInformation.informationForUser = "File was not uploadeded. try again";
+
+                return "File was not uploadeded. try again";
+            }
+        }
+
+        private void SaveNewFileMetoinformation (string pathToFile)
+        {
+            var fileMetaInformation = GetMetaInformationAboutFile(pathToFile);
+            binaryDataRepository.SerializeFileMetaInformation(fileMetaInformation);
+        }
+
+        private FileMetaInformation GetMetaInformationAboutFile(string pathToFile)
+        {
+            FileMetaInformation fileMetaInformation = new FileMetaInformation();
+
+            fileMetaInformation.name = dataRepository.GetFileName(pathToFile);
+            fileMetaInformation.extension = Path.GetExtension(pathToFile);
+            fileMetaInformation.size = dataRepository.GetFileSize(pathToFile);
+            fileMetaInformation.creationDate = DateTime.Now.ToString("yyyy-MM-dd");
+            fileMetaInformation.downloadsNumber = 0;
+            fileMetaInformation.hashChecksum = GetHashChecksum(pathToFile);
+
+            return fileMetaInformation;
         }
 
         private string GetHashChecksum(string pathToFile)
@@ -98,14 +177,25 @@ namespace lab_02.BuisnessLayer
             }
             return fileHash;
         }
-        private bool UploadFilesIntoStorage(string pathToFile)
-        {
-            dataRepository.UploadFilesIntoStorage(pathToFile);
 
-            return CheckOnUploadSuccess(pathToFile, storageSddress);
+        internal string UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
+        {
+            dataRepository.UnloadFilesIntoStorge(unloadingFile, folderForUnloading);
+
+            userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, folderForUnloading);
+
+            if (userInformation.isFileValid)
+            {
+                return "The file has been successfully uploaded to the storage. Press enter to return to the menu";
+            }
+
+            else
+            {
+                return "File was not uploadeded. try again";
+            }
         }
-       
-        internal UserInformation UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
+
+        internal UserInformation CheckFileForUnload(string unloadingFile, string folderForUnloading)
         {
             UserInformation userInformation = new UserInformation();
 
@@ -123,33 +213,14 @@ namespace lab_02.BuisnessLayer
 
                 return userInformation;
             }
+
             else
             {
-                dataRepository.UnloadFilesIntoStorge(unloadingFile, folderForUnloading);
-
-                userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, folderForUnloading);
-
-                if (userInformation.isFileValid)
-                {
-                    userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press enter to return to the menu";
-
-                }
-
-                else
-                {
-                    userInformation.informationForUser = "File was not uploadeded. try again";
-                }
-
+                userInformation.isFileValid = true;
                 return userInformation;
             }
-        }
-
-        private void CheckFileForUnload ()
-        {
-
 
         }
-
 
         private bool CheckOnUploadSuccess(string pathToFile, string pathToFolder)
         {

@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualBasic;
 
 namespace lab_02.DataLayer
 {
@@ -11,6 +12,12 @@ namespace lab_02.DataLayer
     {
         public long maxFileSize = 157286400; // 150 Megabyte
         public long MaximumStorageSize = 10737418240; // 10 Gigabyte
+
+        
+        public void RenameFile(string originalName, string newName)
+        {
+            File.Move(originalName, newName);
+        }
 
         internal void UploadFilesIntoStorage(string pathToFile)
         {

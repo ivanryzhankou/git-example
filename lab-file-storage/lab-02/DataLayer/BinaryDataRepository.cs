@@ -14,21 +14,11 @@ namespace lab_02.DataLayer
 {
     internal class BinaryDataRepository
     {
-        Models.FileMetaInformation fileMetaInformation = new Models.FileMetaInformation();
-
-        internal void SerializeFileMetaInformation(string fileName, string fileExtension, long fileSize, string fileCreationDate, int fileDownloadsNumber,
-            string fileHashСheckSum)
+        internal void SerializeFileMetaInformation(Models.FileMetaInformation fileMetaInformation)
         {
-            fileMetaInformation.name = fileName;
-            fileMetaInformation.extension = fileExtension;
-            fileMetaInformation.size = fileSize;
-            fileMetaInformation.creationDate = fileCreationDate;
-            fileMetaInformation.downloadsNumber = fileDownloadsNumber;
-            fileMetaInformation.hashChecksum = fileHashСheckSum;
-
             Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
 
-            metaInformationFiles.Add(fileName, fileMetaInformation);
+            metaInformationFiles.Add(fileMetaInformation.name, fileMetaInformation);
 
             BinaryFormatter formatter = new BinaryFormatter();
 
@@ -38,6 +28,8 @@ namespace lab_02.DataLayer
             }
         }
 
+
+
         internal Dictionary<string, Models.FileMetaInformation> DeserializeFileMetaInformation()
         {
             BinaryFormatter formatter = new BinaryFormatter();
@@ -46,24 +38,21 @@ namespace lab_02.DataLayer
             {
                 Dictionary<string, Models.FileMetaInformation> metaInformationFiles = (Dictionary<string, Models.FileMetaInformation>)formatter.Deserialize(fs);
 
-
                 return metaInformationFiles;
-
             }
-
         }
 
         internal void ShowMetaInformation(string fileName) // interface method. Temporarily here
         {
             Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
 
-            Models.FileMetaInformation activeFile = metaInformationFiles.GetValueOrDefault(fileName);
+            Models.FileMetaInformation selectedFile = metaInformationFiles.GetValueOrDefault(fileName);
             
-            Console.WriteLine("File name: " + activeFile.name);
-            Console.WriteLine("file extension: " + activeFile.extension);
-            Console.WriteLine("File size: " + activeFile.size + " kb");
-            Console.WriteLine("Date of upload: " + activeFile.creationDate);
-            Console.WriteLine("Number of downloads: " + activeFile.downloadsNumber);
+            Console.WriteLine("File name: " + selectedFile.name);
+            Console.WriteLine("file extension: " + selectedFile.extension);
+            Console.WriteLine("File size: " + selectedFile.size + " byte");
+            Console.WriteLine("Date of upload: " + selectedFile.creationDate);
+            Console.WriteLine("Count of downloads: " + selectedFile.downloadsNumber);
         }
     }
 }

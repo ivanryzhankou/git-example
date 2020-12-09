@@ -16,8 +16,16 @@ namespace lab_02
         static void Main(string[] args)
         {
             InterfaceLayer.InterfaceService interfaceService = new InterfaceLayer.InterfaceService();
+            DataLayer.BinaryDataRepository dataRepository = new DataLayer.BinaryDataRepository();
+
 
             interfaceService.ShowStartMenu();
+            //dataRepository.ShowMetaInformation("go.rtf");
+        }
+
+        static void RenameFile(string originalName, string newName)
+        {
+            File.Move(originalName, newName);
         }
 
         private static bool UserVerification(string login, string password)

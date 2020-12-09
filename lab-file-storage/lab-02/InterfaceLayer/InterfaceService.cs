@@ -21,13 +21,14 @@ namespace lab_02.InterfaceLayer
         {
             do
             {
-                List<string> options = new List<string>() { "Download files to storage", "Save files from storage", "Rename file into storage", "Show user info", "Exit" };
+                List<string> options = new List<string>() { "Upload files to storage", "Unload files from storage", "Rename file into storage", "Remove file from storage",
+                    "Show user info", "Exit" };
 
                 activeUserRequest = ShowActionMenu(options);
                 UseRequestProcessing(activeUserRequest);
             }
 
-            while (activeUserRequest != 4);
+            while (activeUserRequest != 5);
         }
 
         private void UseRequestProcessing(int userRequest)
@@ -35,41 +36,65 @@ namespace lab_02.InterfaceLayer
             switch (userRequest)
             {
                 case 0:
-                    getInformationToUploadFile();
+                    GetInformationToUploadFile();
                     break;
                 case 1:
-                    getInformationToUnloading();
+                    GetInformationToUnloading();
                     break;
                 case 2:
-                    getInformationToRenameFile();
+                    GetInformationToRenameFile();
+                    break;
+                case 3:
                     break;
                 default:
                     break;
             }
-
         }
 
-        private void getInformationToRenameFile()
+        private void GetInformationToRenameFile()
         {
             string oldName = SelectionFileInStorage("Select the file you want to rename");
             UserNotice("Inter a new file name");
             string newName = GetStringFromUser();
 
-            ShowRenameResult(oldName, newName);
+            ShowResultOfFileRenameCheck(oldName, newName);
 
         }
 
-        private void ShowRenameResult(string oldName, string newName)
+        private void ShowResultOfFileRenameCheck(string oldName, string newName)
         {
+            userInformation = buisnessService.CheckingRenameFile(oldName, newName);
+
+            if (userInformation.isFileValid)
+            {
+                ShowResultOfFileRename(oldName, newName);
+            }
+            else
+            {
+                Console.Clear();
+
+                UserNotice(userInformation.informationForUser);
+                GetInformationToRenameFile();
+            }
+        }
+
+        private void ShowResultOfFileRename(string oldName, string newName)
+        {
+            userInformation = buisnessService.RenameFile(oldName, newName);
+            Console.Clear();
+            UserNotice(userInformation.informationForUser);
+            Console.ReadKey();
+            Console.Clear();
+
 
         }
-        private void getInformationToUploadFile()
+        private void GetInformationToUploadFile()
         {
             string pathToFile = GetPathToFile(@"Enter the path to the file or enter ""back"" to return to the menu");
 
             if (pathToFile != "back")
             {
-                ShowResultOfFileUpload(pathToFile);
+                ShowResultOfFileUploadingChecking(pathToFile);
             }
             else
             {
@@ -77,14 +102,32 @@ namespace lab_02.InterfaceLayer
             }
         }
 
-        private void getInformationToUnloading()
+        private void ShowResultOfFileUploadingChecking(string pathToFile)
+        {
+            userInformation = buisnessService.CheckingFileUpload(pathToFile);
+
+
+            if (userInformation.isFileValid)
+            {
+                ShowResultExecutionFileUpload(pathToFile);
+            }
+
+            else
+            {
+                Console.Clear();
+                UserNotice(userInformation.informationForUser);
+                GetInformationToUploadFile();
+            }
+        }
+
+        private void GetInformationToUnloading()
         {
             string unloadingFile = SelectionFileInStorage("Select the file you want to download");
             string folderForUnloading = GetPathToFile(@"enter the path to the unload folder or enter ""back"" to return to the menu");
 
             if (folderForUnloading != "back")
             {
-                ShowResultOfFileUnloading(unloadingFile, folderForUnloading);
+                ShowResultOfFileUnloadingChecking(unloadingFile, folderForUnloading);
             }
             else
             {
@@ -92,33 +135,47 @@ namespace lab_02.InterfaceLayer
             }
         }
 
-        private void ShowResultOfFileUnloading(string unloadingFile, string folderForUnloading)
+        private void ShowResultOfFileUnloadingChecking(string unloadingFile, string folderForUnloading)
         {
-            userInformation = buisnessService.UnloadFilesIntoStorage(unloadingFile, folderForUnloading);
+            userInformation = buisnessService.CheckFileForUnload(unloadingFile, folderForUnloading);
 
-            if (userInformation.isFileValid)
+            if (userInformation.isFileValid & !userInformation.needReplacement)
             {
-                Console.Clear();
-                UserNotice(userInformation.informationForUser);
-                Console.ReadKey();
-                Console.Clear();
-                ShowStartMenu();
+                ShowResultExecutionFileUnloading(unloadingFile, folderForUnloading);
             }
 
-            if (userInformation.needReplacement)
+            else if (userInformation.needReplacement)
             {
                 Console.Clear();
                 UserNotice(userInformation.informationForUser);
-                List<string> options = new List<string>() {"Yes","No" };
-                ShowActionMenu(options);
+                List<string> options = new List<string>() { "Yes", "No" };
+                int userChois = ShowActionMenu(options);
+
+                switch (userChois)
+                {
+                    case 0:
+                        ShowResultExecutionFileUnloading(unloadingFile, folderForUnloading);
+                        break;
+                    case 1:
+                        ShowStartMenu();
+                        break;
+                }
             }
 
             else
             {
                 Console.Clear();
                 UserNotice(userInformation.informationForUser);
-                getInformationToUnloading();
+                GetInformationToUnloading();
             }
+        }
+
+        private void ShowResultExecutionFileUnloading(string unloadingFile, string folderForUnloading)
+        {
+            Console.Clear();
+            UserNotice(buisnessService.UnloadFilesIntoStorage(unloadingFile, folderForUnloading));
+            Console.ReadKey();
+            Console.Clear();
         }
 
         private string SelectionFileInStorage(string userMessage)
@@ -129,25 +186,12 @@ namespace lab_02.InterfaceLayer
             return filesInStorage[ShowActionMenu(filesInStorage)];
         }
 
-        private void ShowResultOfFileUpload(string pathToFile)
+        private void ShowResultExecutionFileUpload(string pathToFile)
         {
-            userInformation = buisnessService.CheckingFileUpload(pathToFile); 
-
-
-            if (!userInformation.isFileValid)
-            {
-                Console.Clear();
-                UserNotice(userInformation.informationForUser);
-                getInformationToUploadFile();
-            }
-
-            else
-            {
-                Console.Clear();
-                UserNotice(userInformation.informationForUser);
-                Console.ReadKey();
-
-            }
+            Console.Clear();
+            UserNotice(buisnessService.UploadFileIntoStorage(pathToFile));
+            Console.ReadKey();
+            Console.Clear();
         }
 
         private string GetPathToFile(string userMessage)
