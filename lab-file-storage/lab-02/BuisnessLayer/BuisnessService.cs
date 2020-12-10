@@ -17,9 +17,9 @@ namespace lab_02.BuisnessLayer
 
         DataLayer.DataRepository dataRepository = new DataLayer.DataRepository();
         DataLayer.BinaryDataRepository binaryDataRepository = new DataLayer.BinaryDataRepository();
-        UserInformation userInformation = new UserInformation();
+        InformationForUser userInformation = new InformationForUser();
 
-        public UserInformation CheckingRenameFile(string oldName, string newName)
+        public InformationForUser CheckingRenameFile(string oldName, string newName)
         {
             if (dataRepository.IsFileExistence(storageSddress + "\\" + newName))
             {
@@ -52,7 +52,19 @@ namespace lab_02.BuisnessLayer
             }
         }
 
-        internal UserInformation DeleteFileFromStorage(string pathToFile)
+        internal FileMetaInformation GetInformationAboutFile (string pathToFile)
+        {
+            string fileName = GetFileName(pathToFile);
+
+            Dictionary<string, FileMetaInformation> metaInformationFiles = binaryDataRepository.DeserializeFileMetaInformation();
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(fileName);
+
+            return informationAboutselectedFile;
+
+
+        }
+
+        internal InformationForUser DeleteFileFromStorage(string pathToFile)
         {
             dataRepository.DeleteFileFromStorage(pathToFile);
 
@@ -68,7 +80,7 @@ namespace lab_02.BuisnessLayer
             }
         }
 
-        public UserInformation RenameFile(string oldName, string newName)
+        public InformationForUser RenameFile(string oldName, string newName)
         {
             dataRepository.RenameFile(oldName, storageSddress + "\\" + newName);
 
@@ -101,7 +113,7 @@ namespace lab_02.BuisnessLayer
             return true;
         }
 
-    public UserInformation CheckingFileUpload(string pathToFile)
+    public InformationForUser CheckingFileUpload(string pathToFile)
         {
 
             if (!dataRepository.IsFileExistence(pathToFile))
@@ -163,7 +175,7 @@ namespace lab_02.BuisnessLayer
         {
             FileMetaInformation fileMetaInformation = new FileMetaInformation();
 
-            fileMetaInformation.name = dataRepository.GetFileName(pathToFile);
+            fileMetaInformation.name = GetFileName(pathToFile);
             fileMetaInformation.extension = Path.GetExtension(pathToFile);
             fileMetaInformation.size = dataRepository.GetFileSize(pathToFile);
             fileMetaInformation.creationDate = DateTime.Now.ToString("yyyy-MM-dd");
@@ -194,9 +206,11 @@ namespace lab_02.BuisnessLayer
 
         internal string UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
         {
-            dataRepository.UnloadFilesIntoStorge(unloadingFile, folderForUnloading);
+            string pathToUnloadingFile = folderForUnloading + "\\" + GetFileName(unloadingFile);
 
-            userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, folderForUnloading);
+            dataRepository.UnloadFilesIntoStorge(unloadingFile, pathToUnloadingFile);
+
+            userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, pathToUnloadingFile);
 
             if (userInformation.isFileValid)
             {
@@ -209,9 +223,9 @@ namespace lab_02.BuisnessLayer
             }
         }
 
-        internal UserInformation CheckFileForUnload(string unloadingFile, string folderForUnloading)
+        internal InformationForUser CheckFileForUnload(string unloadingFile, string folderForUnloading)
         {
-            UserInformation userInformation = new UserInformation();
+            InformationForUser userInformation = new InformationForUser();
 
             if (!Directory.Exists(folderForUnloading))
             {
@@ -237,9 +251,29 @@ namespace lab_02.BuisnessLayer
 
         private bool CheckOnUploadSuccess(string pathToFile, string pathToFolder)
         {
-            string fileName = dataRepository.GetFileName(pathToFile);
+            string fileName = GetFileName(pathToFile);
 
             return dataRepository.IsFileExistence(storageSddress + "//" + fileName);
+        }
+
+        internal string GetFileName(string pathToFile)
+        {
+            string fileName = string.Empty;
+
+            for (int i = pathToFile.Length - 1; i >= 0; i--)
+            {
+                if (pathToFile[i] != '\\')
+                {
+                    fileName += pathToFile[i];
+                }
+                else
+                {
+                    break;
+                }
+            }
+            string fileNameReverse = new string(fileName.ToCharArray().Reverse().ToArray());
+
+            return fileNameReverse;
         }
     }
 }

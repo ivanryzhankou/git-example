@@ -41,18 +41,5 @@ namespace lab_02.DataLayer
                 return metaInformationFiles;
             }
         }
-
-        internal void ShowMetaInformation(string fileName) // interface method. Temporarily here
-        {
-            Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
-
-            Models.FileMetaInformation selectedFile = metaInformationFiles.GetValueOrDefault(fileName);
-            
-            Console.WriteLine("File name: " + selectedFile.name);
-            Console.WriteLine("file extension: " + selectedFile.extension);
-            Console.WriteLine("File size: " + selectedFile.size + " byte");
-            Console.WriteLine("Date of upload: " + selectedFile.creationDate);
-            Console.WriteLine("Count of downloads: " + selectedFile.downloadsNumber);
-        }
     }
 }

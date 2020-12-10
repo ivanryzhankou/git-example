@@ -39,7 +39,6 @@ namespace lab_02.DataLayer
 
         internal void UnloadFilesIntoStorge(string unloadingFile, string pathToUnloadingFile)
         {
-            pathToUnloadingFile += ("\\" + GetFileName(unloadingFile));
             File.Copy(unloadingFile, pathToUnloadingFile, true);
         }
 
@@ -91,26 +90,6 @@ namespace lab_02.DataLayer
                 }
             }
             return true;
-        }
-
-        internal string GetFileName(string pathToFile)
-        {
-            string fileName = string.Empty;
-
-            for (int i = pathToFile.Length - 1; i >= 0; i--)
-            {
-                if (pathToFile[i] != '\\')
-                {
-                    fileName += pathToFile[i];
-                }
-                else
-                {
-                    break;
-                }
-            }
-            string fileNameReverse = new string(fileName.ToCharArray().Reverse().ToArray());
-
-            return fileNameReverse;
         }
     }
 }

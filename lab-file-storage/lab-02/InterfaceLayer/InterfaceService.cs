@@ -4,6 +4,8 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using lab_02.DataLayer.Models;
+
 
 
 
@@ -12,7 +14,7 @@ namespace lab_02.InterfaceLayer
     class InterfaceService
     {
         BuisnessLayer.BuisnessService buisnessService = new BuisnessLayer.BuisnessService();
-        BuisnessLayer.Model.UserInformation userInformation = new BuisnessLayer.Model.UserInformation();
+        BuisnessLayer.Model.InformationForUser userInformation = new BuisnessLayer.Model.InformationForUser();
 
 
         int activeUserRequest;
@@ -21,14 +23,14 @@ namespace lab_02.InterfaceLayer
         {
             do
             {
-                List<string> options = new List<string>() { "Upload file to storage", "Unload file from storage", "Rename file into storage", "Remove file from storage",
+                List<string> options = new List<string>() { "Upload file to storage", "Unload file from storage", "Rename file into storage", "Remove file from storage", "Show file info",
                     "Show user info", "Exit" };
 
                 activeUserRequest = ShowActionMenu(options);
                 UseRequestProcessing(activeUserRequest);
             }
 
-            while (activeUserRequest != 5);
+            while (activeUserRequest != 6);
         }
 
         private void UseRequestProcessing(int userRequest)
@@ -36,23 +38,46 @@ namespace lab_02.InterfaceLayer
             switch (userRequest)
             {
                 case 0:
-                    GetInformationToUploadFile();
+                    GetInformationToUploadFileFromUser();
                     break;
                 case 1:
-                    GetInformationToUnloading();
+                    GetInformationToUnloadingFromUser();
                     break;
                 case 2:
-                    GetInformationToRenameFile();
+                    GetInformationToRenameFileFromUser();
                     break;
                 case 3:
-                    GetInformationToDeleteFile();
+                    GetInformationToDeleteFilFromUsere();
+                    break;
+                case 4:
+                    GetInformationAboutFileFromUser();
                     break;
                 default:
                     break;
             }
         }
 
-        private void GetInformationToDeleteFile()
+        private void GetInformationAboutFileFromUser()
+        {
+            string pathToFile = SelectionFileInStorage("Select file to show information about");
+            FileMetaInformation informationAboutselectedFile = buisnessService.GetInformationAboutFile(pathToFile);
+
+            ShowInformationAboutFile(informationAboutselectedFile);
+        }
+
+        private void ShowInformationAboutFile(FileMetaInformation selectedFile) 
+        {
+            UserNotice("File name: " + selectedFile.name);
+            UserNotice("file extension: " + selectedFile.extension);
+            UserNotice("File size: " + selectedFile.size + " byte");
+            UserNotice("Date of upload: " + selectedFile.creationDate);
+            UserNotice("Count of downloads: " + selectedFile.downloadsNumber);
+            UserNotice("Press any key to return to the menu");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
+        private void GetInformationToDeleteFilFromUsere()
         {
             string pathToFile = SelectionFileInStorage("Select file to delete");
 
@@ -70,7 +95,7 @@ namespace lab_02.InterfaceLayer
             Console.Clear();
         }
 
-        private void GetInformationToRenameFile()
+        private void GetInformationToRenameFileFromUser()
         {
             string oldName = SelectionFileInStorage("Select file you want to rename");
             UserNotice("Inter a new file name");
@@ -92,7 +117,7 @@ namespace lab_02.InterfaceLayer
             {
                 Console.Clear();
                 UserNotice(userInformation.informationForUser);
-                GetInformationToRenameFile();
+                GetInformationToRenameFileFromUser();
             }
         }
 
@@ -104,7 +129,7 @@ namespace lab_02.InterfaceLayer
             Console.ReadKey();
             Console.Clear();
         }
-        private void GetInformationToUploadFile()
+        private void GetInformationToUploadFileFromUser()
         {
             string pathToFile = GetPathToFile(@"Enter the path to the file or enter ""back"" to return to the menu");
 
@@ -131,7 +156,7 @@ namespace lab_02.InterfaceLayer
             {
                 Console.Clear();
                 UserNotice(userInformation.informationForUser);
-                GetInformationToUploadFile();
+                GetInformationToUploadFileFromUser();
             }
         }
 
@@ -143,7 +168,7 @@ namespace lab_02.InterfaceLayer
             Console.Clear();
         }
 
-        private void GetInformationToUnloading()
+        private void GetInformationToUnloadingFromUser()
         {
             string unloadingFile = SelectionFileInStorage("Select the file you want to download");
             string folderForUnloading = GetPathToFile(@"enter the path to the unload folder or enter ""back"" to return to the menu");
@@ -189,7 +214,7 @@ namespace lab_02.InterfaceLayer
             {
                 Console.Clear();
                 UserNotice(userInformation.informationForUser);
-                GetInformationToUnloading();
+                GetInformationToUnloadingFromUser();
             }
         }
 
