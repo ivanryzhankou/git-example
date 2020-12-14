@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Collections;
 using System.Collections.Specialized;
 using System.IO;
 using System.Security.Cryptography;
@@ -8,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using lab_02.BuisnessLayer.Model;
 using lab_02.DataLayer.Models;
+
 
 namespace lab_02.BuisnessLayer
 {
@@ -17,6 +17,8 @@ namespace lab_02.BuisnessLayer
 
         DataLayer.DataRepository dataRepository = new DataLayer.DataRepository();
         DataLayer.BinaryDataRepository binaryDataRepository = new DataLayer.BinaryDataRepository();
+        DataLayer.ConfigurationDataRepository configurationDataRepository = new DataLayer.ConfigurationDataRepository();
+
         InformationForUser userInformation = new InformationForUser();
 
         public InformationForUser CheckingRenameFile(string oldName, string newName)
@@ -47,7 +49,7 @@ namespace lab_02.BuisnessLayer
 
             else
             {
-                userInformation.isFileValid = true;
+                userInformation.isOperationValid = true;
                 return userInformation;
             }
         }
@@ -64,12 +66,14 @@ namespace lab_02.BuisnessLayer
 
         }
 
-        internal InformationForUser DeleteFileFromStorage(string pathToFile)
+        internal InformationForUser RemoveFileFromStorage(string pathToFile)
         {
             dataRepository.DeleteFileFromStorage(pathToFile);
 
             if (!dataRepository.IsFileExistence(pathToFile))
             {
+                RemoveFileMetoinformation(pathToFile);
+
                 userInformation.informationForUser = "File has been delete. Press any key to return to the menu";
                 return userInformation;
             }
@@ -86,6 +90,8 @@ namespace lab_02.BuisnessLayer
 
             if (dataRepository.IsFileExistence(storageSddress + "\\" + newName))
             {
+                RenameFileMetoinformation(oldName, newName);
+
                 userInformation.informationForUser = "File has been renamed. Press any key to return to the menu";
                 return userInformation;
             }
@@ -142,33 +148,76 @@ namespace lab_02.BuisnessLayer
 
             else
             {
-                userInformation.isFileValid = true;
+                userInformation.isOperationValid = true;
                 return userInformation;
             }
         }
 
-        internal string UploadFileIntoStorage(string pathToFile)
+        internal InformationForUser UploadFileIntoStorage(string pathToFile)
         {
             dataRepository.UploadFilesIntoStorage(pathToFile);
 
             if (CheckOnUploadSuccess(pathToFile, storageSddress))
             {
-                SaveNewFileMetoinformation(pathToFile);
+                AddNewFileMetoinformation(pathToFile);
 
-                return "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+                userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+
+                return userInformation;
             }
             else
             {
                 userInformation.informationForUser = "File was not uploadeded. try again. Press any key to return to the menu";
 
-                return "File was not uploadeded. try again";
+                return userInformation;
             }
         }
 
-        private void SaveNewFileMetoinformation (string pathToFile)
+        private void AddNewFileMetoinformation (string pathToFile)
         {
             var fileMetaInformation = GetMetaInformationAboutFile(pathToFile);
-            binaryDataRepository.SerializeFileMetaInformation(fileMetaInformation);
+            Dictionary<string, FileMetaInformation> metaInformationFiles = binaryDataRepository.DeserializeFileMetaInformation();
+
+            metaInformationFiles.Add(fileMetaInformation.name, fileMetaInformation);
+
+            binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
+        }
+
+        private void IncrementCountOfDownloads (string pathToFile)
+        {
+            string fileName = GetFileName(pathToFile);
+            Dictionary<string, FileMetaInformation> metaInformationFiles = binaryDataRepository.DeserializeFileMetaInformation();
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(fileName);
+
+            informationAboutselectedFile.downloadСounter++;
+            metaInformationFiles[fileName] = informationAboutselectedFile;
+
+            binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
+        }
+
+        private void RenameFileMetoinformation(string pathToFile, string newName)   // need optimization
+        {
+            string oldName = GetFileName(pathToFile);
+
+            Dictionary<string, FileMetaInformation> metaInformationFiles = binaryDataRepository.DeserializeFileMetaInformation();
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(oldName);
+
+            informationAboutselectedFile.name = newName;
+            metaInformationFiles[newName] = informationAboutselectedFile;
+            metaInformationFiles.Remove(oldName);
+
+            binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
+
+        }
+
+        private void RemoveFileMetoinformation(string pathToFile)
+        {
+            string fileName = GetFileName(pathToFile);
+            Dictionary<string, FileMetaInformation> metaInformationFiles = binaryDataRepository.DeserializeFileMetaInformation();
+
+            metaInformationFiles.Remove(fileName);
+
+            binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
         }
 
         private FileMetaInformation GetMetaInformationAboutFile(string pathToFile)
@@ -179,7 +228,7 @@ namespace lab_02.BuisnessLayer
             fileMetaInformation.extension = Path.GetExtension(pathToFile);
             fileMetaInformation.size = dataRepository.GetFileSize(pathToFile);
             fileMetaInformation.creationDate = DateTime.Now.ToString("yyyy-MM-dd");
-            fileMetaInformation.downloadsNumber = 0;
+            fileMetaInformation.downloadСounter = 0;
             fileMetaInformation.hashChecksum = GetHashChecksum(pathToFile);
 
             return fileMetaInformation;
@@ -204,29 +253,33 @@ namespace lab_02.BuisnessLayer
             return fileHash;
         }
 
-        internal string UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
+        internal InformationForUser UnloadFilesIntoStorage(string unloadingFile, string folderForUnloading)
         {
             string pathToUnloadingFile = folderForUnloading + "\\" + GetFileName(unloadingFile);
 
             dataRepository.UnloadFilesIntoStorge(unloadingFile, pathToUnloadingFile);
 
-            userInformation.isFileValid = CheckOnUploadSuccess(unloadingFile, pathToUnloadingFile);
+            userInformation.isOperationValid = CheckOnUploadSuccess(unloadingFile, pathToUnloadingFile);
 
-            if (userInformation.isFileValid)
+            if (userInformation.isOperationValid)
             {
-                return "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+                IncrementCountOfDownloads(unloadingFile);
+
+                userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+
+                return userInformation;
             }
 
             else
             {
-                return "File was not uploadeded. Try again. Press any key to return to the menu";
+                userInformation.informationForUser = "File was not uploadeded. Try again. Press any key to return to the menu";
+
+                return userInformation;
             }
         }
 
         internal InformationForUser CheckFileForUnload(string unloadingFile, string folderForUnloading)
         {
-            InformationForUser userInformation = new InformationForUser();
-
             if (!Directory.Exists(folderForUnloading))
             {
                 userInformation.informationForUser = "This directory does not exist. Please try again";
@@ -244,7 +297,7 @@ namespace lab_02.BuisnessLayer
 
             else
             {
-                userInformation.isFileValid = true;
+                userInformation.isOperationValid = true;
                 return userInformation;
             }
         }
@@ -274,6 +327,72 @@ namespace lab_02.BuisnessLayer
             string fileNameReverse = new string(fileName.ToCharArray().Reverse().ToArray());
 
             return fileNameReverse;
+        }
+
+        internal long GetFileStorageSize ()
+        {
+            return dataRepository.GetFolderSize(storageSddress);
+        }
+
+        internal bool FileSearch(string fileName)
+        {
+            HashSet<string> files = new HashSet<string>(Directory.GetFiles(ConfigurationManager.AppSettings.Get("storageAddress"))); ;
+
+
+            if (files.Contains(fileName))
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        internal void SaveCreationDate ()
+        {
+            configurationDataRepository.AddUpdateAppSettings("creationDate", DateTime.Now.ToString("yyyy-MM-dd"));
+        }
+
+        internal bool CheckForExistenceOfBinaryRepository ()
+        {
+            string pathToBinaryRepository = ConfigurationManager.AppSettings.Get("storageAddress");
+
+            return dataRepository.IsFileExistence(pathToBinaryRepository);
+        }
+
+        internal void CreateBinaryRepository()
+        {
+            Dictionary<string, FileMetaInformation> metaInformationFiles = new Dictionary<string, FileMetaInformation>();
+
+            binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
+        }
+
+        internal InformationForUser CreateFileStorage(string storageName, string pathToStorage)
+        {
+            if (!Directory.Exists(pathToStorage))
+            {
+                userInformation.informationForUser = "Specified directory does not exist. Try again";
+                return userInformation;
+            }
+
+            if (!dataRepository.СheckUniquenessFolderName(storageName, pathToStorage))
+            {
+                userInformation.informationForUser = "Folder with the same name already exists at the specified address. Try again";
+                return userInformation;
+            }
+
+            else
+            {
+                configurationDataRepository.AddUpdateAppSettings("storageAddress", storageName);
+                SaveCreationDate();
+                dataRepository.CreateDirectory(storageName);
+
+                userInformation.informationForUser = $"file store was created along the path: {storageName}";
+                userInformation.isOperationValid = true;
+                return userInformation;
+            }
         }
     }
 }

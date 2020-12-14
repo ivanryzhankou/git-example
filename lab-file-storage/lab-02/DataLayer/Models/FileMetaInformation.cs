@@ -11,7 +11,7 @@ namespace lab_02.DataLayer.Models
         internal string extension = string.Empty;
         internal long size;
         internal string creationDate;
-        internal int downloadsNumber = 0;
+        internal int downloadСounter = 0;
         internal string hashChecksum = string.Empty;
     }
 }

@@ -14,12 +14,8 @@ namespace lab_02.DataLayer
 {
     internal class BinaryDataRepository
     {
-        internal void SerializeFileMetaInformation(Models.FileMetaInformation fileMetaInformation)
+        internal void SerializeFileMetaInformation(Dictionary<string, Models.FileMetaInformation> metaInformationFiles)
         {
-            Dictionary<string, Models.FileMetaInformation> metaInformationFiles = DeserializeFileMetaInformation();
-
-            metaInformationFiles.Add(fileMetaInformation.name, fileMetaInformation);
-
             BinaryFormatter formatter = new BinaryFormatter();
 
             using (FileStream fs = new FileStream("MetaInformationFiles.dat", FileMode.Create))
@@ -27,8 +23,6 @@ namespace lab_02.DataLayer
                 formatter.Serialize(fs, metaInformationFiles);
             }
         }
-
-
 
         internal Dictionary<string, Models.FileMetaInformation> DeserializeFileMetaInformation()
         {

@@ -91,6 +91,27 @@ namespace lab_02.DataLayer
             }
             return true;
         }
+
+        internal bool СheckUniquenessFolderName(string storageName, string pathToFolder)
+        {
+            List<string> directorys = new List<string>(Directory.GetDirectories(pathToFolder));
+            DirectoryInfo directoryInfo = new DirectoryInfo(storageName);
+
+            for (int i = 0; i < directorys.Count; i++)
+            {
+                if (directoryInfo.Name == (directorys[i].Remove(0, (pathToFolder.Length + 1))))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        internal void CreateDirectory (string pathToDirectory)
+        {
+            DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
+            dirInfo.Create();
+        }
     }
 }
 

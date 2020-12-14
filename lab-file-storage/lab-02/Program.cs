@@ -9,26 +9,21 @@ using System.Text;
 using System.Collections;
 
 
+
 namespace lab_02
 {
-    class Program
+     class Program
     {
         static void Main(string[] args)
         {
             InterfaceLayer.InterfaceService interfaceService = new InterfaceLayer.InterfaceService();
-            DataLayer.BinaryDataRepository dataRepository = new DataLayer.BinaryDataRepository();
 
-
+            Logging();
+            CheckForFirstLaunch(interfaceService);
             interfaceService.ShowStartMenu();
-            //dataRepository.ShowMetaInformation("go.rtf");
         }
 
-        static void RenameFile(string originalName, string newName)
-        {
-            File.Move(originalName, newName);
-        }
-
-        private static bool UserVerification(string login, string password)
+            private static bool UserVerification(string login, string password)
         {
             return login == ConfigurationManager.AppSettings.Get("login") && password == ConfigurationManager.AppSettings.Get("password");
         }
@@ -55,6 +50,14 @@ namespace lab_02
             }
             while (isUserValid == false);
             Console.Clear();
+        }
+
+        private static void CheckForFirstLaunch(InterfaceLayer.InterfaceService interfaceService)
+        {
+            if (ConfigurationManager.AppSettings.Get("creationDate") == string.Empty)
+            {
+                interfaceService.PreparationForFirstLaunch();
+            }
         }
     }
 }
