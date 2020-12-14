@@ -5,7 +5,7 @@ using System.Configuration;
 
 namespace lab_02
 {
-     class Program
+    class Program
     {
         static void Main(string[] args)
         {
@@ -16,11 +16,13 @@ namespace lab_02
             interfaceService.ShowStartMenu();
         }
 
-            private static bool UserVerification(string login, string password)
+        //todo: method name must be a verb. 
+        private static bool UserVerification(string login, string password)
         {
             return login == ConfigurationManager.AppSettings.Get("login") && password == ConfigurationManager.AppSettings.Get("password");
         }
 
+        //todo: method name must be a verb. 
         private static void Logging()
         {
             bool isUserValid;
@@ -34,7 +36,7 @@ namespace lab_02
                 string password = Console.ReadLine();
 
                 isUserValid = UserVerification(login, password);
-
+                //todo: try to avoid such syntax. Prefer (!isUserValid)
                 if (isUserValid == false)
                 {
                     Console.Clear();
@@ -45,6 +47,7 @@ namespace lab_02
             Console.Clear();
         }
 
+        //todo: interfaceService - strange name, cannot understand for it is for
         private static void CheckForFirstLaunch(InterfaceLayer.InterfaceService interfaceService)
         {
             if (ConfigurationManager.AppSettings.Get("creationDate") == string.Empty)

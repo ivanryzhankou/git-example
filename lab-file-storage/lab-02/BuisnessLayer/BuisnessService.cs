@@ -45,7 +45,7 @@ namespace lab_02.BuisnessLayer
                 userInformation.informationForUser = "The file name cannot exceed 250 characters . Try again";
                 return userInformation;
             }
-
+            //todo: useless else statement
             else
             {
                 userInformation.isOperationValid = true;
@@ -94,6 +94,7 @@ namespace lab_02.BuisnessLayer
                 userInformation.informationForUser = "File has been renamed. Press any key to return to the menu";
                 return userInformation;
             }
+            //todo: useless else statement
             else
             {
                 userInformation.informationForUser = "File cannot be renamed. Try again. Press any key to return to the menu";
@@ -104,7 +105,7 @@ namespace lab_02.BuisnessLayer
         public bool CheckForInvalidCharacters(string newName)
         {
            List<char> invalidCharacters = new List<char>() {'/', '\\', ':', '*', '?', '«', '<', '>', '|' };
-
+            //todo: the whole can be simplified smth like this: newName.IndexOfAny("/*?".ToCharArray()) >= 0  
             for (int i = 0; i < newName.Length; i++)
             {
                 for (int j = 0; j < invalidCharacters.Count; j++)
@@ -268,7 +269,7 @@ namespace lab_02.BuisnessLayer
 
                 return userInformation;
             }
-
+            //todo: useless else statement
             else
             {
                 userInformation.informationForUser = "File was not uploadeded. Try again. Press any key to return to the menu";
@@ -293,7 +294,7 @@ namespace lab_02.BuisnessLayer
 
                 return userInformation;
             }
-
+            //todo: useless else statement
             else
             {
                 userInformation.isOperationValid = true;
@@ -323,6 +324,7 @@ namespace lab_02.BuisnessLayer
                     break;
                 }
             }
+            //todo: haven't seen creating string thru new 
             string fileNameReverse = new string(fileName.ToCharArray().Reverse().ToArray());
 
             return fileNameReverse;
@@ -332,12 +334,13 @@ namespace lab_02.BuisnessLayer
         {
             return dataRepository.GetFolderSize(storageSddress);
         }
-
+        //todo: 
         internal bool FileSearch(string fileName)
         {
             HashSet<string> files = new HashSet<string>(Directory.GetFiles(ConfigurationManager.AppSettings.Get("storageAddress"))); ;
 
 
+            //todo: can be replaced with return files.Contains(fileName);
             if (files.Contains(fileName))
             {
                 return true;
@@ -354,6 +357,8 @@ namespace lab_02.BuisnessLayer
             configurationDataRepository.AddUpdateAppSettings("creationDate", DateTime.Now.ToString("yyyy-MM-dd"));
         }
 
+        //todo: no need to add space after method name CheckForExistenceOfBinaryRepository (), just CheckForExistenceOfBinaryRepository()
+        //todo: I'd name it like IsBinaryRepositoryExists
         internal bool CheckForExistenceOfBinaryRepository ()
         {
             string pathToBinaryRepository = ConfigurationManager.AppSettings.Get("storageAddress");
@@ -381,7 +386,7 @@ namespace lab_02.BuisnessLayer
                 userInformation.informationForUser = "Folder with the same name already exists at the specified address. Try again";
                 return userInformation;
             }
-
+            //todo: you don't need this else
             else
             {
                 configurationDataRepository.AddUpdateAppSettings("storageAddress", storageName);

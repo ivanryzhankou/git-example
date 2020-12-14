@@ -10,6 +10,8 @@ namespace lab_02.InterfaceLayer
 {
     class InterfaceService
     {
+        //todo: private fields should start with _, like _userInformation
+        //todo: it is better to instantiate fields in class ctor
         BuisnessLayer.BuisnessService buisnessService = new BuisnessLayer.BuisnessService();
         InformationForUser userInformation = new InformationForUser();
 
@@ -20,6 +22,9 @@ namespace lab_02.InterfaceLayer
         {
             do
             {
+                //todo: var would be better here as it is clear what type is used from the new List<string> part. No need to repeat yourself
+                //todo: no need to call a ctor if you instantiate variable(remove () here)
+                //todo: please align the list's values so it is convenient to read
                 List<string> options = new List<string>() { "Upload file to storage", "Unload file from storage", "Rename file into storage", "Remove file from storage", "Show file info",
                     "Show user info", "Find file", "Exit" };
 
@@ -27,7 +32,7 @@ namespace lab_02.InterfaceLayer
                 UseRequestProcessing(activeUserRequest);
             }
 
-            while (activeUserRequest != 7);
+            while (activeUserRequest != 7);//todo: why 7? it looks like magic number and hard to understand from code what it means
         }
 
         private void UseRequestProcessing(int userRequest)
@@ -55,6 +60,7 @@ namespace lab_02.InterfaceLayer
                 case 6:
                     ShowSearchResult();
                     break;
+                //todo: the default case is useless and can be removed
                 default:
                     break;
             }
@@ -67,6 +73,7 @@ namespace lab_02.InterfaceLayer
 
             string pathToFile = (ConfigurationManager.AppSettings.Get("storageAddress")) + "\\" + fileName;
            
+            //todo: these two if/else statements differ only in message. Can be easily substituted with ternary operation
             if (buisnessService.FileSearch(pathToFile))
             {
                 Console.Clear();
@@ -104,6 +111,7 @@ namespace lab_02.InterfaceLayer
 
         private void ShowInformationAboutFile(FileMetaInformation selectedFile) 
         {
+            //todo: prefer to use string interpolation when it is possible
             UserNotice("File name: " + selectedFile.name);
             UserNotice("file extension: " + selectedFile.extension);
             UserNotice("File size: " + selectedFile.size + " byte");
@@ -301,6 +309,8 @@ namespace lab_02.InterfaceLayer
 
         internal static int ShowActionMenu(List<string> listOfOptions, int activeMenuOption = 0)
         {
+            //todo: variables must start from lower case
+            //todo: false is default value for bool, no need to asign it
             bool IsСhoiceMade = false;
 
             do
@@ -367,13 +377,16 @@ namespace lab_02.InterfaceLayer
             }
         }
 
+
+        //todo: it's up to you but I think the UserNotice and GetStringFromUser are useless
         internal static void UserNotice(string message)
         {
             {
                 Console.WriteLine(message);
             }
         }
-
+        
+        //todo: string is a type, so naming is not accurate here. Something like GetUserInput would be better
         internal static string GetStringFromUser()
         {
             {
