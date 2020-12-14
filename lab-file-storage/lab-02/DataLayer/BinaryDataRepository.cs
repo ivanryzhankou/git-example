@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Collections.Specialized;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Collections;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.Serialization;
-using System.Reflection;
-using System.ComponentModel.Design;
 
 
 namespace lab_02.DataLayer

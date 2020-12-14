@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Collections.Specialized;
 using System.IO;
 using System.Security.Cryptography;
 using System.Collections.Generic;
@@ -389,7 +388,7 @@ namespace lab_02.BuisnessLayer
                 SaveCreationDate();
                 dataRepository.CreateDirectory(storageName);
 
-                userInformation.informationForUser = $"file store was created along the path: {storageName}";
+                userInformation.informationForUser = $"file store was created along the path: {storageName}. Re-enter the program to get started";
                 userInformation.isOperationValid = true;
                 return userInformation;
             }

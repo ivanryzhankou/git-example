@@ -1,10 +1,6 @@
-﻿using System;
-using System.Configuration;
-using System.Collections.Specialized;
+﻿using System.Configuration;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualBasic;
 
 namespace lab_02.DataLayer
 {

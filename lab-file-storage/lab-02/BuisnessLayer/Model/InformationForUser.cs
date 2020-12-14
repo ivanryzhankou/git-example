@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace lab_02.BuisnessLayer.Model
+﻿namespace lab_02.BuisnessLayer.Model
 {
     public class InformationForUser
     {

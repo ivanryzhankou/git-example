@@ -6,7 +6,6 @@ using lab_02.DataLayer.Models;
 using lab_02.BuisnessLayer.Model;
 
 
-
 namespace lab_02.InterfaceLayer
 {
     class InterfaceService
@@ -390,6 +389,7 @@ namespace lab_02.InterfaceLayer
             {
                 buisnessService.CreateBinaryRepository();
             }
+            Environment.Exit(0);
         }
 
         internal void GetInformationFromUserToCreateFileStorage()
