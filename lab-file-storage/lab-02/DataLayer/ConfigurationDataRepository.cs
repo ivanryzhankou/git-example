@@ -1,6 +1,4 @@
-﻿using System;
-using System.Configuration;
-using System.Text;
+﻿using System.Configuration;
 
 namespace lab_02.DataLayer
 {

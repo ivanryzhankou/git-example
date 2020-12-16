@@ -2,28 +2,32 @@
 using System.Configuration;
 
 
-
 namespace lab_02
 {
     class Program
     {
+        private static PresentationLayer.PresentationService _interfaceService = new PresentationLayer.PresentationService();
+
+        //public Program()
+        //{
+        //    _interfaceService = new PresentationLayer.PresentationService();
+        //}
+
         static void Main(string[] args)
         {
-            InterfaceLayer.InterfaceService interfaceService = new InterfaceLayer.InterfaceService();
-
-            Logging();
-            CheckForFirstLaunch(interfaceService);
-            interfaceService.ShowStartMenu();
+            GetUserCredentials();
+            CheckForFirstLaunch(_interfaceService);
+            _interfaceService.ShowStartMenu();
         }
-
-        //todo: method name must be a verb. 
-        private static bool UserVerification(string login, string password)
+        private static bool ValidateUserCredentials(string login, string password)
         {
-            return login == ConfigurationManager.AppSettings.Get("login") && password == ConfigurationManager.AppSettings.Get("password");
+            string validLogin = ConfigurationManager.AppSettings.Get("login");
+            string validPassword = ConfigurationManager.AppSettings.Get("password");
+
+            return login == validLogin && password == validPassword;
         }
 
-        //todo: method name must be a verb. 
-        private static void Logging()
+        private static void GetUserCredentials()
         {
             bool isUserValid;
 
@@ -35,9 +39,8 @@ namespace lab_02
                 Console.WriteLine("Enter your password");
                 string password = Console.ReadLine();
 
-                isUserValid = UserVerification(login, password);
-                //todo: try to avoid such syntax. Prefer (!isUserValid)
-                if (isUserValid == false)
+                isUserValid = ValidateUserCredentials(login, password);
+                if (!isUserValid)
                 {
                     Console.Clear();
                     Console.WriteLine("Try again. Wrong login or password.");
@@ -47,8 +50,7 @@ namespace lab_02
             Console.Clear();
         }
 
-        //todo: interfaceService - strange name, cannot understand for it is for
-        private static void CheckForFirstLaunch(InterfaceLayer.InterfaceService interfaceService)
+        private static void CheckForFirstLaunch(PresentationLayer.PresentationService interfaceService)
         {
             if (ConfigurationManager.AppSettings.Get("creationDate") == string.Empty)
             {
