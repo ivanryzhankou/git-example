@@ -9,7 +9,6 @@ namespace lab_02.DataLayer
     {
         public const long maxFileSize = 157286400; // 150 Megabyte
         public const long MaximumStorageSize = 10737418240; // 10 Gigabyte
-
         
         internal void DeleteFileFromStorage(string pathToFile)
         {
@@ -32,36 +31,36 @@ namespace lab_02.DataLayer
             File.Copy(unloadingFile, pathToUnloadingFile, true);
         }
 
-        internal bool IsFileExistence(string pathToFile)
+        internal bool IsFileExistence(string pathToFile) //b
         {
             return File.Exists(pathToFile);
         }
 
-        internal bool CheckStorageOverflow(string pathToFile)
+        internal bool CheckStorageOverflow(string pathToFile) //b
         {
             return GetFolderSize(ConfigurationManager.AppSettings.Get("storageAddress")) + GetFileSize(pathToFile) > MaximumStorageSize;
         }
 
-        internal long GetFileSize(string pathToFile)
+        internal long GetFileSize(string pathToFile) //b
         {
             FileInfo File = new FileInfo(pathToFile);
 
             return File.Length;
         }
 
-        internal bool CheckOnMaxSizeFile(string pathToFile)
+        internal bool CheckOnMaxSizeFile(string pathToFile) //b
         {
             return GetFileSize(pathToFile) > maxFileSize;
         }
 
-        internal long GetFolderSize(string pathToFolder)
+        internal long GetFolderSize(string pathToFolder) //b
         {
             List<string> files = new List<string>(Directory.GetFiles(pathToFolder));
 
             return files.Select(x => x.Length).Sum();
         }
 
-        internal bool IsFileNameUnique(string pathToFile, string pathToFolder)
+        internal bool IsFileNameUnique(string pathToFile, string pathToFolder) //b
         {
             var files = new List<string>(Directory.GetFiles(pathToFolder));
             var File = new FileInfo(pathToFile);
@@ -76,7 +75,7 @@ namespace lab_02.DataLayer
             return true;
         }
 
-        internal bool СheckUniquenessFolderName(string storageName, string pathToFolder)
+        internal bool СheckUniquenessFolderName(string storageName, string pathToFolder) //b
         {
             List<string> directorys = new List<string>(Directory.GetDirectories(pathToFolder));
             DirectoryInfo directoryInfo = new DirectoryInfo(storageName);
