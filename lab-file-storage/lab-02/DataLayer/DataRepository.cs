@@ -9,15 +9,15 @@ namespace lab_02.DataLayer
     {
         public const long maxFileSize = 157286400; // 150 Megabyte
         public const long MaximumStorageSize = 10737418240; // 10 Gigabyte
-        
-        internal void DeleteFileFromStorage(string pathToFile)
-        {
-            File.Delete(pathToFile);
-        }
 
         public void RenameFile(string originalName, string newName)
         {
             File.Move(originalName, newName);
+        }
+
+        internal void DeleteFileFromStorage(string pathToFile)
+        {
+            File.Delete(pathToFile);
         }
 
         internal void UploadFilesIntoStorage(string pathToFile)
@@ -26,14 +26,9 @@ namespace lab_02.DataLayer
             fileInf.CopyTo((ConfigurationManager.AppSettings.Get("storageAddress") + "\\" + fileInf.Name));
         }
 
-        internal void DownloadFilesIntoStorage(string unloadingFile, string pathToUnloadingFile)
+        internal void DownloadFilesFromStorage(string downloadingFile, string pathToDownloadingFile)
         {
-            File.Copy(unloadingFile, pathToUnloadingFile, true);
-        }
-
-        internal bool IsFileExistence(string pathToFile) //b
-        {
-            return File.Exists(pathToFile);
+            File.Copy(downloadingFile, pathToDownloadingFile, true);
         }
 
         internal bool CheckStorageOverflow(string pathToFile) //b
@@ -90,11 +85,10 @@ namespace lab_02.DataLayer
             return true;
         }
 
-        internal void CreateDirectory (string pathToDirectory)
+        internal void CreateDirectory(string pathToDirectory)
         {
             DirectoryInfo dirInfo = new DirectoryInfo(pathToDirectory);
             dirInfo.Create();
         }
     }
 }
-
