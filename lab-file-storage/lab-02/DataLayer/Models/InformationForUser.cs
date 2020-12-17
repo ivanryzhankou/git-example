@@ -4,6 +4,5 @@
     {
         internal bool isOperationValid;
         internal string informationForUser = string.Empty;
-        internal bool needReplacement;
     }
 }
