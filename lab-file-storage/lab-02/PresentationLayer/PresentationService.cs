@@ -27,7 +27,7 @@ namespace lab_02.PresentationLayer
             do
             {
                 var options = new List<string> { "Upload file to storage", "Unload file from storage", "Rename file into storage", "Remove file from storage", "Show file info",
-                                                 "Show user info", "Find file", "Exit" };
+                                                 "Show user info", "Find file", "Exit " };
 
                 activeUserRequest = ShowActionMenu(options);
                 _UseRequestProcessing(activeUserRequest);
