@@ -8,11 +8,6 @@ namespace lab_02
     {
         private static PresentationLayer.PresentationService _interfaceService = new PresentationLayer.PresentationService();
 
-        //public Program()
-        //{
-        //    _interfaceService = new PresentationLayer.PresentationService();
-        //}
-
         static void Main(string[] args)
         {
             GetUserCredentials();

@@ -8,8 +8,6 @@ using lab_02.DataLayer.Models;
 using lab_02.DataLayer;
 
 
-
-
 namespace lab_02.BuisnessLayer
 {
     public class BuisnessService
@@ -70,8 +68,6 @@ namespace lab_02.BuisnessLayer
             FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(fileName);
 
             return informationAboutselectedFile;
-
-
         }
 
         internal InformationForUser RemoveFileFromStorage(string pathToFile)
@@ -106,13 +102,10 @@ namespace lab_02.BuisnessLayer
 
             _userInformation.informationForUser = "File cannot be renamed. Try again. Press any key to return to the menu";
             return _userInformation;
-
         }
 
         public bool CheckForInvalidCharacters(string newName)
         {
-            List<char> invalidCharacters = new List<char>() { '/', '\\', ':', '*', '?', '«', '<', '>', '|' };
-
             return !(newName.IndexOfAny("/\\:*?«<>|".ToCharArray()) >= 0);
         }
 
