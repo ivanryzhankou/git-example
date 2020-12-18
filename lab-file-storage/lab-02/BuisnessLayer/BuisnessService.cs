@@ -14,6 +14,9 @@ namespace lab_02.BuisnessLayer
     {
         string storageSddress = ConfigurationManager.AppSettings.Get("storageAddress");
 
+        const long maxFileSize = 157286400; // 150 Megabyte
+        const long MaximumStorageSize = 10737418240; // 10 Gigabyte
+
         private readonly DataRepository _dataRepository;
         private readonly BinaryDataRepository _binaryDataRepository;
         private readonly ConfigurationDataRepository _configurationDataRepository;
@@ -37,19 +40,19 @@ namespace lab_02.BuisnessLayer
                 return _userInformation;
             }
 
-            if (_dataRepository.CheckOnMaxSizeFile(pathToFile))
+            if (_CheckOnMaxSizeFile(pathToFile))
             {
                 _userInformation.informationForUser = "Sorry.The file cannot be larger than 150 MB";
                 return _userInformation;
             }
 
-            if (_dataRepository.CheckStorageOverflow(pathToFile))
+            if (_CheckStorageOverflow(pathToFile))
             {
                 _userInformation.informationForUser = "Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file";
                 return _userInformation;
             }
 
-            if (!_dataRepository.IsFileNameUnique(pathToFile, storageSddress))
+            if (!_IsFileNameUnique(pathToFile, storageSddress))
             {
                 _userInformation.informationForUser = "A file with the same name already exists";
                 return _userInformation;
@@ -85,7 +88,7 @@ namespace lab_02.BuisnessLayer
                 return _userInformation;
             }
 
-            if (!_dataRepository.IsFileNameUnique(downloadingFile, folderForDownloading))
+            if (!_IsFileNameUnique(downloadingFile, folderForDownloading))
             {
                 _userInformation.informationForUser = "A file with the same name already exists. Please try again";
 
@@ -178,7 +181,7 @@ namespace lab_02.BuisnessLayer
 
         internal InformationForUser RemoveFileFromStorage(string pathToFile)
         {
-            _dataRepository.DeleteFileFromStorage(pathToFile);
+            _dataRepository.RemoveFileFromStorage(pathToFile);
 
             if (!_IsFileExistence(pathToFile))
             {
@@ -199,7 +202,7 @@ namespace lab_02.BuisnessLayer
             return !(newName.IndexOfAny("/\\:*?«<>|".ToCharArray()) >= 0);
         }
 
-        private void AddNewFileMetoinformation(string pathToFile) // binD
+        private void AddNewFileMetoinformation(string pathToFile) // binD?
         {
             var fileMetaInformation = GetMetaInformationAboutFile(pathToFile);
             Dictionary<string, FileMetaInformation> metaInformationFiles = _binaryDataRepository.DeserializeFileMetaInformation();
@@ -252,7 +255,7 @@ namespace lab_02.BuisnessLayer
 
             fileMetaInformation.name = GetFileName(pathToFile);
             fileMetaInformation.extension = Path.GetExtension(pathToFile);
-            fileMetaInformation.size = _dataRepository.GetFileSize(pathToFile);
+            fileMetaInformation.size = _GetFileSize(pathToFile);
             fileMetaInformation.creationDate = DateTime.Now.ToString("yyyy-MM-dd");
             fileMetaInformation.downloadСounter = 0;
             fileMetaInformation.hashChecksum = GetHashChecksum(pathToFile);
@@ -301,7 +304,7 @@ namespace lab_02.BuisnessLayer
 
         internal long GetFileStorageSize()
         {
-            return _dataRepository.GetFolderSize(storageSddress);
+            return _GetFolderSize(storageSddress);
         }
         internal bool FileSearch(string fileName)
         {
@@ -350,7 +353,7 @@ namespace lab_02.BuisnessLayer
                 return _userInformation;
             }
 
-            if (!_dataRepository.СheckUniquenessFolderName(storageName, pathToStorage))
+            if (!_СheckUniquenessFolderName(storageName, pathToStorage))
             {
                 _userInformation.informationForUser = "Folder with the same name already exists at the specified address. Try again";
                 return _userInformation;
@@ -363,6 +366,60 @@ namespace lab_02.BuisnessLayer
             _userInformation.informationForUser = $"file store was created along the path: {storageName}. Re-enter the program to get started";
             _userInformation.isOperationValid = true;
             return _userInformation;
+        }
+
+        private bool _CheckStorageOverflow(string pathToFile) //b
+        {
+            return _GetFolderSize(ConfigurationManager.AppSettings.Get("storageAddress")) + _GetFileSize(pathToFile) > MaximumStorageSize;
+        }
+
+        private long _GetFileSize(string pathToFile) //b
+        {
+            FileInfo File = new FileInfo(pathToFile);
+
+            return File.Length;
+        }
+
+        private bool _CheckOnMaxSizeFile(string pathToFile)
+        {
+            return _GetFileSize(pathToFile) > maxFileSize;
+        }
+
+        private long _GetFolderSize(string pathToFolder)
+        {
+            List<string> files = new List<string>(Directory.GetFiles(pathToFolder));
+
+            return files.Select(x => x.Length).Sum();
+        }
+
+        private bool _IsFileNameUnique(string pathToFile, string pathToFolder)
+        {
+            var files = new List<string>(Directory.GetFiles(pathToFolder));
+            var File = new FileInfo(pathToFile);
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                if (File.Name == (files[i].Remove(0, (pathToFolder.Length + 1))))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool _СheckUniquenessFolderName(string storageName, string pathToFolder)
+        {
+            List<string> directorys = new List<string>(Directory.GetDirectories(pathToFolder));
+            DirectoryInfo directoryInfo = new DirectoryInfo(storageName);
+
+            for (int i = 0; i < directorys.Count; i++)
+            {
+                if (directoryInfo.Name == (directorys[i].Remove(0, (pathToFolder.Length + 1))))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
