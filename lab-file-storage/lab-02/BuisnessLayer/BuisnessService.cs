@@ -364,5 +364,59 @@ namespace lab_02.BuisnessLayer
             _userInformation.isOperationValid = true;
             return _userInformation;
         }
+
+        private bool _CheckStorageOverflow(string pathToFile) 
+        {
+            return _GetFolderSize(ConfigurationManager.AppSettings.Get("storageAddress")) + GetFileSize(pathToFile) > _dataRepository.MaximumStorageSize;
+        }
+
+        internal bool CheckOnMaxSizeFile(string pathToFile) 
+        {
+            return GetFileSize(pathToFile) > maxFileSize;
+        }
+
+        internal long GetFileSize(string pathToFile)
+        {
+            FileInfo File = new FileInfo(pathToFile);
+
+            return File.Length;
+        }
+
+        internal long _GetFolderSize(string pathToFolder) //b
+        {
+            List<string> files = new List<string>(Directory.GetFiles(pathToFolder));
+
+            return files.Select(x => x.Length).Sum();
+        }
+
+        private bool _IsFileNameUnique(string pathToFile, string pathToFolder) //b
+        {
+            var files = new List<string>(Directory.GetFiles(pathToFolder));
+            var File = new FileInfo(pathToFile);
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                if (File.Name == (files[i].Remove(0, (pathToFolder.Length + 1))))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool _СheckUniquenessFolderName(string storageName, string pathToFolder) //b
+        {
+            List<string> directorys = new List<string>(Directory.GetDirectories(pathToFolder));
+            DirectoryInfo directoryInfo = new DirectoryInfo(storageName);
+
+            for (int i = 0; i < directorys.Count; i++)
+            {
+                if (directoryInfo.Name == (directorys[i].Remove(0, (pathToFolder.Length + 1))))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }
