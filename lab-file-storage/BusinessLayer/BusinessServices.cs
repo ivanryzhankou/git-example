@@ -1,34 +1,34 @@
-﻿using System;
+﻿using BusinessLayer.Interfaces;
+using DataLayer.Interfaces;
+using DataLayer.Models;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Security.Cryptography;
-using System.Collections.Generic;
 using System.Linq;
-using lab_02.DataLayer.Models;
-using lab_02.DataLayer;
+using System.Security.Cryptography;
 
-
-namespace lab_02.BuisnessLayer
+namespace BusinessLayer
 {
-    public class BuisnessService
+    public class BuisnessService : IBusinessService
     {
-        string storageSddress = ConfigurationManager.AppSettings.Get("storageAddress");
+        string storageAddress = ConfigurationManager.AppSettings.Get("storageAddress");
 
         const long maxFileSize = 157286400; // 150 Megabyte
         const long MaximumStorageSize = 10737418240; // 10 Gigabyte
 
-        private readonly DataRepository _dataRepository;
-        private readonly BinaryDataRepository _binaryDataRepository;
-        private readonly ConfigurationDataRepository _configurationDataRepository;
+        private readonly IDataRepository _dataRepository;
+        private readonly IBinaryDataRepository _binaryDataRepository;
+        private readonly IConfigurationDataRepository _configurationDataRepository;
 
-        private InformationForUser _userInformation;
+        private InformationForUser _userInformation = new InformationForUser();
 
-        public BuisnessService()
+        public BuisnessService(IDataRepository dataRepository, IBinaryDataRepository binaryDataRepository,
+            IConfigurationDataRepository configurationDataRepository)
         {
-            _dataRepository = new DataRepository();
-            _binaryDataRepository = new BinaryDataRepository();
-            _configurationDataRepository = new ConfigurationDataRepository();
-            _userInformation = new InformationForUser();
+            _dataRepository = dataRepository;
+            _binaryDataRepository = binaryDataRepository;
+            _configurationDataRepository = configurationDataRepository;
         }
 
         public InformationForUser FileUploadCheck(string pathToFile)
@@ -36,25 +36,25 @@ namespace lab_02.BuisnessLayer
 
             if (!_IsFileExistence(pathToFile))
             {
-                _userInformation.informationForUser = "This file does not exist. Please try again";
+                _userInformation.Message = "This file does not exist. Please try again";
                 return _userInformation;
             }
 
             if (_CheckOnMaxSizeFile(pathToFile))
             {
-                _userInformation.informationForUser = "Sorry.The file cannot be larger than 150 MB";
+                _userInformation.Message = "Sorry.The file cannot be larger than 150 MB";
                 return _userInformation;
             }
 
             if (_CheckStorageOverflow(pathToFile))
             {
-                _userInformation.informationForUser = "Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file";
+                _userInformation.Message = "Sorry.You cannot store more than 10 gigabytes.Pay for an increase in available storage or select a different file";
                 return _userInformation;
             }
 
-            if (!_IsFileNameUnique(pathToFile, storageSddress))
+            if (!_IsFileNameUnique(pathToFile, storageAddress))
             {
-                _userInformation.informationForUser = "A file with the same name already exists";
+                _userInformation.Message = "A file with the same name already exists";
                 return _userInformation;
             }
 
@@ -62,35 +62,35 @@ namespace lab_02.BuisnessLayer
             return _userInformation;
         }
 
-        internal InformationForUser UploadFileIntoStorage(string pathToFile)
+        public InformationForUser UploadFileIntoStorage(string pathToFile)
         {
             _dataRepository.UploadFilesIntoStorage(pathToFile);
 
-            if (_IsFileExistence(pathToFile, storageSddress))
+            if (_IsFileExistence(pathToFile, storageAddress))
             {
                 AddNewFileMetoinformation(pathToFile);
 
-                _userInformation.informationForUser = "The file has been successfully uploaded to the storage. Press any key to return to the menu";
+                _userInformation.Message = "The file has been successfully uploaded to the storage. Press any key to return to the menu";
 
                 return _userInformation;
             }
-            _userInformation.informationForUser = "File was not uploadeded. try again. Press any key to return to the menu";
+            _userInformation.Message = "File was not uploadeded. try again. Press any key to return to the menu";
 
             return _userInformation;
         }
 
-        internal InformationForUser FileDownloadCheck(string downloadingFile, string folderForDownloading)
+        public InformationForUser FileDownloadCheck(string downloadingFile, string folderForDownloading)
         {
             if (!Directory.Exists(folderForDownloading))
             {
-                _userInformation.informationForUser = "This directory does not exist. Please try again";
+                _userInformation.Message = "This directory does not exist. Please try again";
 
                 return _userInformation;
             }
 
             if (!_IsFileNameUnique(downloadingFile, folderForDownloading))
             {
-                _userInformation.informationForUser = "A file with the same name already exists. Please try again";
+                _userInformation.Message = "A file with the same name already exists. Please try again";
 
                 return _userInformation;
             }
@@ -100,50 +100,50 @@ namespace lab_02.BuisnessLayer
             return _userInformation;
         }
 
-        internal InformationForUser DownloadFilesFromStorage(string downloadingFile, string folderFordownloading)
+        public InformationForUser DownloadFilesFromStorage(string downloadingFile, string folderFordownloading)
         {
             string pathTodownloadingFile = $"{folderFordownloading}\\{GetFileName(downloadingFile)}";
 
             _dataRepository.DownloadFilesFromStorage(downloadingFile, pathTodownloadingFile);
 
-            _userInformation.isOperationValid = _IsFileExistence(downloadingFile, folderFordownloading);
+            _userInformation.IsOperationValid = _IsFileExistence(downloadingFile, folderFordownloading);
 
-            if (_userInformation.isOperationValid)
+            if (_userInformation.IsOperationValid)
             {
                 IncrementCountOfDownloads(downloadingFile);
 
-                _userInformation.informationForUser = "The file has been successfully download from storage. Press any key to return to the menu";
+                _userInformation.Message = "The file has been successfully download from storage. Press any key to return to the menu";
 
                 return _userInformation;
             }
-            _userInformation.informationForUser = "File was not download. Try again. Press any key to return to the menu";
+            _userInformation.Message = "File was not download. Try again. Press any key to return to the menu";
 
             return _userInformation;
         }
 
         public InformationForUser FileRenameCheck(string oldName, string newName)
         {
-            if (_IsFileExistence($"{storageSddress}\\{newName}"))
+            if (_IsFileExistence($"{storageAddress}\\{newName}"))
             {
-                _userInformation.informationForUser = "File with the same name already exists. Try again";
+                _userInformation.Message = "File with the same name already exists. Try again";
                 return _userInformation;
             }
 
             if (oldName == newName)
             {
-                _userInformation.informationForUser = "You haven't changed the file name. Try again";
+                _userInformation.Message = "You haven't changed the file name. Try again";
                 return _userInformation;
             }
 
             if (!CheckForInvalidCharacters(newName))
             {
-                _userInformation.informationForUser = @"the file name cannot be used '/\:*?«<>|' try again";
+                _userInformation.Message = @"the file name cannot be used '/\:*?«<>|' try again";
                 return _userInformation;
             }
 
             if (newName.Length > 250)
             {
-                _userInformation.informationForUser = "The file name cannot exceed 250 characters . Try again";
+                _userInformation.Message = "The file name cannot exceed 250 characters . Try again";
                 return _userInformation;
             }
 
@@ -153,7 +153,7 @@ namespace lab_02.BuisnessLayer
 
         public InformationForUser RenameFile(string oldName, string newName)
         {
-            string pathToRenamedFile = $"{storageSddress}\\{newName}";
+            string pathToRenamedFile = $"{storageAddress}\\{newName}";
 
             _dataRepository.RenameFile(oldName, pathToRenamedFile);
 
@@ -161,25 +161,25 @@ namespace lab_02.BuisnessLayer
             {
                 RenameFileMetoinformation(oldName, newName);
 
-                _userInformation.informationForUser = "File has been renamed. Press any key to return to the menu";
+                _userInformation.Message = "File has been renamed. Press any key to return to the menu";
                 return _userInformation;
             }
 
-            _userInformation.informationForUser = "File cannot be renamed. Try again. Press any key to return to the menu";
+            _userInformation.Message = "File cannot be renamed. Try again. Press any key to return to the menu";
             return _userInformation;
         }
 
-        internal FileMetaInformation GetMetainformationAboutFile(string pathToFile)
+        public FileMetaInformation GetMetainformationAboutFile(string pathToFile)
         {
             string fileName = GetFileName(pathToFile);
 
             Dictionary<string, FileMetaInformation> metaInformationFiles = _binaryDataRepository.DeserializeFileMetaInformation();
-            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(fileName);
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles[fileName]; //?
 
             return informationAboutselectedFile;
         }
 
-        internal InformationForUser RemoveFileFromStorage(string pathToFile)
+        public InformationForUser RemoveFileFromStorage(string pathToFile)
         {
             _dataRepository.RemoveFileFromStorage(pathToFile);
 
@@ -187,12 +187,12 @@ namespace lab_02.BuisnessLayer
             {
                 RemoveFileMetoinformation(pathToFile);
 
-                _userInformation.informationForUser = "File has been delete. Press any key to return to the menu";
+                _userInformation.Message = "File has been delete. Press any key to return to the menu";
                 return _userInformation;
             }
             else
             {
-                _userInformation.informationForUser = "File cannot be delete. Try again. Press any key to return to the menu";
+                _userInformation.Message = "File cannot be delete. Try again. Press any key to return to the menu";
                 return _userInformation;
             }
         }
@@ -216,7 +216,7 @@ namespace lab_02.BuisnessLayer
         {
             string fileName = GetFileName(pathToFile);
             Dictionary<string, FileMetaInformation> metaInformationFiles = _binaryDataRepository.DeserializeFileMetaInformation();
-            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(fileName);
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles[fileName]; //?
 
             informationAboutselectedFile.downloadСounter++;
             metaInformationFiles[fileName] = informationAboutselectedFile;
@@ -229,7 +229,7 @@ namespace lab_02.BuisnessLayer
             string oldName = GetFileName(pathToFile);
 
             Dictionary<string, FileMetaInformation> metaInformationFiles = _binaryDataRepository.DeserializeFileMetaInformation();
-            FileMetaInformation informationAboutselectedFile = metaInformationFiles.GetValueOrDefault(oldName);
+            FileMetaInformation informationAboutselectedFile = metaInformationFiles[oldName]; // ?
 
             informationAboutselectedFile.name = newName;
             metaInformationFiles[newName] = informationAboutselectedFile;
@@ -282,7 +282,7 @@ namespace lab_02.BuisnessLayer
             return fileHash;
         }
 
-        internal string GetFileName(string pathToFile)
+        public string GetFileName(string pathToFile)
         {
             string fileName = string.Empty;
 
@@ -302,11 +302,11 @@ namespace lab_02.BuisnessLayer
             return fileNameReverse;
         }
 
-        internal long GetFileStorageSize()
+        public long GetFileStorageSize()
         {
-            return _GetFolderSize(storageSddress);
+            return _GetFolderSize(storageAddress);
         }
-        internal bool FileSearch(string fileName)
+        public bool FileSearch(string fileName)
         {
             HashSet<string> files = new HashSet<string>(Directory.GetFiles(ConfigurationManager.AppSettings.Get("storageAddress")));
 
@@ -326,36 +326,36 @@ namespace lab_02.BuisnessLayer
             return File.Exists(pathToFile);
         }
 
-        internal void SaveCreationDate()
+        public void SaveCreationDate()
         {
             _configurationDataRepository.AddUpdateAppSettings("creationDate", DateTime.Now.ToString("yyyy-MM-dd"));
         }
 
-        internal bool IsBinaryRepositoryExists()
+        public bool IsBinaryRepositoryExists()
         {
             string pathToBinaryRepository = ConfigurationManager.AppSettings.Get("storageAddress");
 
             return _IsFileExistence(pathToBinaryRepository);
         }
 
-        internal void CreateBinaryRepository()
+        public void CreateBinaryRepository()
         {
             Dictionary<string, FileMetaInformation> metaInformationFiles = new Dictionary<string, FileMetaInformation>();
 
             _binaryDataRepository.SerializeFileMetaInformation(metaInformationFiles);
         }
 
-        internal InformationForUser CreateFileStorage(string storageName, string pathToStorage)
+        public InformationForUser CreateFileStorage(string storageName, string pathToStorage)
         {
             if (!Directory.Exists(pathToStorage))
             {
-                _userInformation.informationForUser = "Specified directory does not exist. Try again";
+                _userInformation.Message = "Specified directory does not exist. Try again";
                 return _userInformation;
             }
 
             if (!_СheckUniquenessFolderName(storageName, pathToStorage))
             {
-                _userInformation.informationForUser = "Folder with the same name already exists at the specified address. Try again";
+                _userInformation.Message = "Folder with the same name already exists at the specified address. Try again";
                 return _userInformation;
             }
 
@@ -363,8 +363,8 @@ namespace lab_02.BuisnessLayer
             SaveCreationDate();
             _dataRepository.CreateDirectory(storageName);
 
-            _userInformation.informationForUser = $"file store was created along the path: {storageName}. Re-enter the program to get started";
-            _userInformation.isOperationValid = true;
+            _userInformation.Message = $"file store was created along the path: {storageName}. Re-enter the program to get started";
+            _userInformation.IsOperationValid = true;
             return _userInformation;
         }
 

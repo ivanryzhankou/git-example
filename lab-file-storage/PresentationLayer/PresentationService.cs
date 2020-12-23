@@ -1,20 +1,21 @@
-﻿using System;
+﻿using BusinessLayer.Interfaces;
+using DataLayer.Models;
+using PresentationLayer.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Collections.Generic;
-using lab_02.DataLayer.Models;
 
-
-namespace lab_02.PresentationLayer
+namespace PresentationLayer
 {
-    class PresentationService
+    public class PresentationService : IPresentationService
     {
-        private readonly BuisnessLayer.BuisnessService _buisnessService;
+        IBusinessService _buisnessService;
         private InformationForUser _userInformation;
 
-        public PresentationService()
+        public PresentationService(IBusinessService businessService)
         {
-            _buisnessService = new BuisnessLayer.BuisnessService();
+            _buisnessService = businessService;
             _userInformation = new InformationForUser();
         }
 
@@ -84,7 +85,7 @@ namespace lab_02.PresentationLayer
         {
             _userInformation = _buisnessService.FileUploadCheck(pathToFile);
 
-            _ShowMessage(_userInformation.informationForUser);
+            _ShowMessage(_userInformation.Message);
         }
 
         private void _GetInformationFromUserToDownload()
@@ -108,7 +109,7 @@ namespace lab_02.PresentationLayer
         {
             _userInformation = _buisnessService.FileDownloadCheck(unloadingFile, folderForUnloading);
 
-            _ShowMessage(_userInformation.informationForUser);
+            _ShowMessage(_userInformation.Message);
         }
 
         private void _ShowSearchResult()
@@ -161,7 +162,7 @@ namespace lab_02.PresentationLayer
 
             _userInformation = _buisnessService.RemoveFileFromStorage(pathToFile);
 
-            _ShowMessage(_userInformation.informationForUser);
+            _ShowMessage(_userInformation.Message);
         }
 
         private void _GetInformationFromUserToRenameFile()
@@ -178,7 +179,7 @@ namespace lab_02.PresentationLayer
         {
             _userInformation = _buisnessService.FileRenameCheck(oldName, newName);
 
-            _ShowMessage(_userInformation.informationForUser);
+            _ShowMessage(_userInformation.Message);
         }
 
         private string _SelectionFileInStorage(string userMessage)
@@ -198,7 +199,7 @@ namespace lab_02.PresentationLayer
             return filesInStorage[ShowActionMenu(filesInStorage)];
         }
 
-        internal static int ShowActionMenu(List<string> listOfOptions, int activeMenuOption = 0)
+        private static int ShowActionMenu(List<string> listOfOptions, int activeMenuOption = 0)
         {
             bool isСhoiceMade;
 
@@ -236,7 +237,7 @@ namespace lab_02.PresentationLayer
             return activeMenuOption;
         }
 
-        internal static int GetUserChoiceForActionMenu(out bool IsСhoiceMade, int activeMenuOption)
+        private static int GetUserChoiceForActionMenu(out bool IsСhoiceMade, int activeMenuOption)
         {
             var userAction = Console.ReadKey().Key;
 
@@ -266,7 +267,7 @@ namespace lab_02.PresentationLayer
             }
         }
 
-        internal void PreparationForFirstLaunch()
+        public void PreparationForFirstLaunch()
         {
             GetInformationFromUserToCreateFileStorage();
 
@@ -277,7 +278,7 @@ namespace lab_02.PresentationLayer
             Environment.Exit(0);
         }
 
-        internal void GetInformationFromUserToCreateFileStorage()
+        private void GetInformationFromUserToCreateFileStorage()
         {
             Console.WriteLine("Come up with a name for the folder that will be used as file storage");
             string storageName = Console.ReadLine();
@@ -292,15 +293,15 @@ namespace lab_02.PresentationLayer
         {
             _userInformation = _buisnessService.CreateFileStorage(storageName, pathToStorage);
 
-            if (_userInformation.isOperationValid)
+            if (_userInformation.IsOperationValid)
             {
-                Console.WriteLine(_userInformation.informationForUser);
+                Console.WriteLine(_userInformation.Message);
             }
 
             else
             {
                 Console.Clear();
-                Console.WriteLine(_userInformation.informationForUser);
+                Console.WriteLine(_userInformation.Message);
                 GetInformationFromUserToCreateFileStorage();
             }
         }
@@ -314,4 +315,3 @@ namespace lab_02.PresentationLayer
         }
     }
 }
-

@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using DataLayer.Interfaces;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-
-namespace lab_02.DataLayer
+namespace DataLayer
 {
-    internal class BinaryDataRepository
+    public class BinaryDataRepository : IBinaryDataRepository
     {
-        internal void SerializeFileMetaInformation(Dictionary<string, Models.FileMetaInformation> metaInformationFiles)
+        public void SerializeFileMetaInformation(Dictionary<string, Models.FileMetaInformation> metaInformationFiles)
         {
             BinaryFormatter formatter = new BinaryFormatter();
 
@@ -17,7 +17,7 @@ namespace lab_02.DataLayer
             }
         }
 
-        internal Dictionary<string, Models.FileMetaInformation> DeserializeFileMetaInformation()
+        public Dictionary<string, Models.FileMetaInformation> DeserializeFileMetaInformation()
         {
             BinaryFormatter formatter = new BinaryFormatter();
 

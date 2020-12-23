@@ -1,4 +1,11 @@
-﻿using System;
+﻿using BusinessLayer;
+using BusinessLayer.Interfaces;
+using DataLayer;
+using DataLayer.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using PresentationLayer;
+using PresentationLayer.Interfaces;
+using System;
 using System.Configuration;
 
 
@@ -6,14 +13,28 @@ namespace lab_02
 {
     class Program
     {
-        private static PresentationLayer.PresentationService _interfaceService = new PresentationLayer.PresentationService();
-
+        private static IServiceProvider _container = GetContainer();
         static void Main(string[] args)
         {
+            var _interfaceServise = _container.GetService<IPresentationService>();
             GetUserCredentials();
-            CheckForFirstLaunch(_interfaceService);
-            _interfaceService.ShowStartMenu();
+            CheckForFirstLaunch(_interfaceServise);
+            _interfaceServise.ShowStartMenu();
         }
+
+        public static IServiceProvider GetContainer()
+        {
+            ServiceCollection container = new ServiceCollection();
+
+            container.AddTransient<IPresentationService, PresentationService>();
+            container.AddTransient<IBusinessService, BuisnessService>();
+            container.AddTransient<IBinaryDataRepository, BinaryDataRepository>();
+            container.AddTransient<IConfigurationDataRepository, ConfigurationDataRepository>();
+            container.AddTransient<IDataRepository, DataRepository>();
+
+            return container.BuildServiceProvider();
+        }
+
         private static bool ValidateUserCredentials(string login, string password)
         {
             string validLogin = ConfigurationManager.AppSettings.Get("login");
@@ -45,7 +66,7 @@ namespace lab_02
             Console.Clear();
         }
 
-        private static void CheckForFirstLaunch(PresentationLayer.PresentationService interfaceService)
+        private static void CheckForFirstLaunch(IPresentationService interfaceService)
         {
             if (ConfigurationManager.AppSettings.Get("creationDate") == string.Empty)
             {

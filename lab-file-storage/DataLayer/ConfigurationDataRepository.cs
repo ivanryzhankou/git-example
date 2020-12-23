@@ -1,10 +1,11 @@
-﻿using System.Configuration;
+﻿using DataLayer.Interfaces;
+using System.Configuration;
 
-namespace lab_02.DataLayer
+namespace DataLayer
 {
-    class ConfigurationDataRepository
+    public class ConfigurationDataRepository : IConfigurationDataRepository
     {
-        internal void AddUpdateAppSettings(string key, string value)
+        public void AddUpdateAppSettings(string key, string value)
         {
             var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var settings = configFile.AppSettings.Settings;
